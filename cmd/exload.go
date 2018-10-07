@@ -18,15 +18,22 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"log"
 )
 
-// exloadsCmd represents the exloads command
-var exloadsCmd = &cobra.Command{
-	Use:   "exloads",
+var exloadArg = struct {
+	dataDir string
+}{
+	"",
+}
+
+// exloadCmd represents the exloads command
+var exloadCmd = &cobra.Command{
+	Use:   "exload",
 	Short: "Loads files in a directory.",
 	Long: `Loads files in a directory for prototyping
 
-The exloads command will create a new index and populate it from a specified
+The exload command will create a new index and populate it from a specified
 directory. The document id will be the file name. The contents of the document
 will be the body of the document (assumes UTF-8 encoding). The mtime will be
 the timestamp of the document.
@@ -36,20 +43,37 @@ exloads will fail if the index path is non-empty.
 exloads will not recurse inside the data directory - only the top level is used.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("exloads called")
+		if indexDir == "" {
+			fmt.Println("index must be specified")
+			return
+		}
+		if exloadArg.dataDir == "" {
+			fmt.Println("dataDir must be specified")
+			return
+		}
+		fmt.Printf("exload called with args: %v\n", args)
+		fmt.Printf("exload called with indexDir: %v\n", indexDir)
+		fmt.Println("exload called with dataDir: ", exloadArg.dataDir)
+		CreateAndPopulateIndex(exloadArg.dataDir, indexDir)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(exloadsCmd)
+	rootCmd.AddCommand(exloadCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// exloadsCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// exloadCmd.PersistentFlags().String("foo", "", "A help for foo")
+	exloadCmd.PersistentFlags().StringVar(&exloadArg.dataDir, "dataDir", "", "data directory")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// exloadsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// exloadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func CreateAndPopulateIndex(dataDir, indexDir string) error {
+	log.Printf("createAndPopulateIndex from %v to %v\n", dataDir, indexDir)
+	return nil
 }

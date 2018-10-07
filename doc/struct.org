@@ -20,11 +20,15 @@
     |
     Pushes a 'document' into the index.
 *** iterateIndex
+    |
+    Provides a way to iterate through all documents in the index.
 *** find
+    |
+    Finds a document from the index using a search query.
 * Data Models
 ** SearchAPI
 *** Document
 **** id - primarily used as a file name when writtent to disk
 **** body - contents of the document
-**** atime - last time the document was modified or "recalled" - for some definiton of "recalled"
+**** atime - last time the document was modified or "recalled" - for some definiton of "recalled", used to treat index as an LRU cache
 **** termid - most documents take the form of "term->definition", this is the term part of such forms

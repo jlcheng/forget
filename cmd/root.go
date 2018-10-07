@@ -41,6 +41,9 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	// Our own custom flags
+	rootCmd.PersistentFlags().StringVar(&indexDir, "indexDir", "", "path to the index directory")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -68,3 +71,7 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 }
+
+
+
+var indexDir string
