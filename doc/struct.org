@@ -1,0 +1,30 @@
+#+STARTUP: showeverything
+#+STARTUP: hidestars
+# c-C a a - agenda view
+# c-C a t - global todo list
+# r       - refresh agenda view
+# C-c a a - org-agenda-list. This is where you want to do most of your work (P, N, F, o)
+# C-c C-d - add deadline (followed by 'Mon', 'Tues'...'Sun' or 1,2...31)
+# C-c C-z - add note
+# C-c a t 2 r - show all DONE items 
+# Ctrl-Shift-Return - add new
+# C-c / t - show todos only
+* Components
+** CLI
+*** exLoads Index arbitrary directory
+*** exWatch Watch directory and notify of changes
+*** exDump Dump index into a single directory
+*** exFind Finds document from index
+** SearchAPI
+*** pushDoc
+    |
+    Pushes a 'document' into the index.
+*** iterateIndex
+*** find
+* Data Models
+** SearchAPI
+*** Document
+**** id - primarily used as a file name when writtent to disk
+**** body - contents of the document
+**** atime - last time the document was modified or "recalled" - for some definiton of "recalled"
+**** termid - most documents take the form of "term->definition", this is the term part of such forms
