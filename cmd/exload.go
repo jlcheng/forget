@@ -22,12 +22,16 @@ import (
 	"os"
 	"errors"
 	"io/ioutil"
+	"github.com/jlcheng/forget/search"
+	poc "github.com/jlcheng/forget/poc"
 )
 
 var exloadArg = struct {
 	dataDir string
+	force bool
 }{
 	"",
+	false,
 }
 
 // exloadCmd represents the exloads command
@@ -57,7 +61,7 @@ exloads will not recurse inside the data directory - only the top level is used.
 		fmt.Printf("exload called with args: %v\n", args)
 		fmt.Printf("exload called with indexDir: %v\n", indexDir)
 		fmt.Println("exload called with dataDir: ", exloadArg.dataDir)
-		err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir)
+		err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,21 +77,35 @@ func init() {
 	// and all subcommands, e.g.:
 	// exloadCmd.PersistentFlags().String("foo", "", "A help for foo")
 	exloadCmd.PersistentFlags().StringVar(&exloadArg.dataDir, "dataDir", "", "data directory")
+	exloadCmd.PersistentFlags().BoolVarP(&exloadArg.force, "force", "f", false, "forces index to run, even if indexDir already exists")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// exloadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func CreateAndPopulateIndex(dataDir, indexDir string) error {
+// rename application variables
+var SearchEngine = poc.SearchEngine_exload
+
+
+func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 	log.Printf("createAndPopulateIndex from %v to %v\n", dataDir, indexDir)
-	_, err := os.Stat(indexDir)
+	f, err := os.Stat(indexDir)
 	if err == nil {
-		return errors.New(fmt.Sprint("directory already exists: ", indexDir))
+		if !force {
+			return errors.New(fmt.Sprint("directory already exists:", indexDir))
+		}
+		// delete and recreate index
+		if !f.IsDir() {
+			return errors.New(fmt.Sprint("is a file:", indexDir))
+		}
+		log.Println("forcibly deleting indexDir:", indexDir)
+		if err = os.Remove(indexDir); err != nil {
+			return err
+		}
 	}
 
-	err = os.Mkdir(indexDir, 0755)
-	if err != nil {
+	if err = os.Mkdir(indexDir, 0755); err != nil {
 		return err
 	}
 
@@ -97,8 +115,14 @@ func CreateAndPopulateIndex(dataDir, indexDir string) error {
 	if err != nil {
 		return err
 	}
-	for idx, file := range files {
-		log.Println(idx, file.Name(), file.IsDir(), file.Size())
+	for _, file := range files {
+		doc := search.Document{
+			Id: file.Name(),
+			Body: file.Name(),
+			AccessTime: file.ModTime(),
+		}
+
+		SearchEngine.Enqueue(doc)
 	}
 
 	return nil
