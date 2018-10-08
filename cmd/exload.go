@@ -19,6 +19,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"log"
+	"os"
+	"errors"
+	"io/ioutil"
 )
 
 var exloadArg = struct {
@@ -54,7 +57,10 @@ exloads will not recurse inside the data directory - only the top level is used.
 		fmt.Printf("exload called with args: %v\n", args)
 		fmt.Printf("exload called with indexDir: %v\n", indexDir)
 		fmt.Println("exload called with dataDir: ", exloadArg.dataDir)
-		CreateAndPopulateIndex(exloadArg.dataDir, indexDir)
+		err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -75,5 +81,25 @@ func init() {
 
 func CreateAndPopulateIndex(dataDir, indexDir string) error {
 	log.Printf("createAndPopulateIndex from %v to %v\n", dataDir, indexDir)
+	_, err := os.Stat(indexDir)
+	if err == nil {
+		return errors.New(fmt.Sprint("directory already exists: ", indexDir))
+	}
+
+	err = os.Mkdir(indexDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	log.Println("index directory created, starting to index")
+
+	files, err := ioutil.ReadDir(dataDir)
+	if err != nil {
+		return err
+	}
+	for idx, file := range files {
+		log.Println(idx, file.Name(), file.IsDir(), file.Size())
+	}
+
 	return nil
 }
