@@ -15,15 +15,14 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-	"log"
-	"os"
 	"errors"
-	"io/ioutil"
+	"fmt"
+	"github.com/jlcheng/forget/log"
+	"github.com/jlcheng/forget/poc"
 	"github.com/jlcheng/forget/search"
-	poc "github.com/jlcheng/forget/poc"
+	"github.com/spf13/cobra"
+	"io/ioutil"
+	"os"
 )
 
 var exloadArg = struct {
@@ -50,6 +49,15 @@ exloads will fail if the index path is non-empty.
 exloads will not recurse inside the data directory - only the top level is used.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("logLevelStr:", logLevelStr)
+		switch logLevelStr {
+		case "DEBUG":
+			poc.Logger = log.Logger{Level:log.LOG_DEBUG}
+		case "WARN":
+			poc.Logger = log.Logger{Level:log.LOG_WARN}
+		default:
+			poc.Logger = log.Logger{Level:log.LOG_NONE}
+		}
 		if indexDir == "" {
 			fmt.Println("index must be specified")
 			return
@@ -63,8 +71,9 @@ exloads will not recurse inside the data directory - only the top level is used.
 		fmt.Println("exload called with dataDir: ", exloadArg.dataDir)
 		err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
 		if err != nil {
-			log.Fatal(err)
+			poc.Logger.Error(err)
 		}
+
 	},
 }
 
@@ -89,7 +98,7 @@ var SearchEngine = poc.SearchEngine_exload
 
 
 func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
-	log.Printf("createAndPopulateIndex from %v to %v\n", dataDir, indexDir)
+	poc.Logger.Debug(fmt.Sprintf("createAndPopulateIndex from %v to %v", dataDir, indexDir))
 	f, err := os.Stat(indexDir)
 	if err == nil {
 		if !force {
@@ -99,7 +108,7 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 		if !f.IsDir() {
 			return errors.New(fmt.Sprint("is a file:", indexDir))
 		}
-		log.Println("forcibly deleting indexDir:", indexDir)
+		poc.Logger.Debug("forcibly deleting indexDir:", indexDir)
 		if err = os.Remove(indexDir); err != nil {
 			return err
 		}
@@ -109,7 +118,7 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 		return err
 	}
 
-	log.Println("index directory created, starting to index")
+	poc.Logger.Debug("index directory created, starting to index")
 
 	files, err := ioutil.ReadDir(dataDir)
 	if err != nil {

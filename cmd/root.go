@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,7 +18,9 @@ var rootCmd = &cobra.Command{
 	Long: `Forget is a CLI program to index and find information for the absent minded.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -38,12 +40,11 @@ func init() {
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.forget.yaml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	// Our own custom flags
 	rootCmd.PersistentFlags().StringVar(&indexDir, "indexDir", "", "path to the index directory")
+	rootCmd.PersistentFlags().StringVar(&logLevelStr, "log", "None", "log level: NONE, DEBUG, or WARN")
+
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -75,3 +76,4 @@ func initConfig() {
 
 
 var indexDir string
+var logLevelStr string
