@@ -10,17 +10,20 @@ const (
 	LOG_DEBUG
 	LOG_WARN
 )
+var Level = LOG_NONE
 
-type Logger struct {
-	Level LogLevel
-}
-
-func (s Logger) Debug(args... string) {
-	if s.Level >= LOG_DEBUG {
-		log.Println(args)
+func Debug(args ...interface{}) {
+	if Level >= LOG_DEBUG {
+		log.Println(args...)
 	}
 }
 
-func (s Logger) Error(err error) {
+func Warn(args ...interface{}) {
+	if Level >= LOG_WARN {
+		log.Println(args...)
+	}
+}
+
+func OnError(err error) {
 	log.Println(err)
 }

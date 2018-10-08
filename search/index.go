@@ -1,8 +1,8 @@
 package search
 
 import (
+	"github.com/jlcheng/forget/log"
 	"time"
-	"log"
 )
 
 //go:generate echo hello world
@@ -18,6 +18,6 @@ type SearchEngine struct {
 }
 
 func (s SearchEngine) Enqueue(doc Document) error {
-	log.Println("enqueue for indexing:", doc.Id)
+	log.Debug("enqueue for indexing:", doc.Id)
 	return nil
 }
