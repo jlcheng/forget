@@ -17,7 +17,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/jlcheng/forget/log"
+	"github.com/jlcheng/forget/debug"
 	"github.com/jlcheng/forget/globals"
 	"github.com/jlcheng/forget/search"
 	"github.com/spf13/cobra"
@@ -51,26 +51,26 @@ exloads will not recurse inside the data directory - only the top level is used.
 	Run: func(cmd *cobra.Command, args []string) {
 		switch logLevelStr {
 		case "DEBUG":
-			log.Level = log.LOG_DEBUG
+			debug.Level = debug.LOG_DEBUG
 		case "WARN":
-			log.Level = log.LOG_WARN
+			debug.Level = debug.LOG_WARN
 		default:
-			log.Level = log.LOG_NONE
+			debug.Level = debug.LOG_NONE
 		}
 		if indexDir == "" {
-			log.Warn("index must be specified")
+			fmt.Println("index must be specified")
 			return
 		}
 		if exloadArg.dataDir == "" {
-			log.Warn("dataDir must be specified")
+			fmt.Println("dataDir must be specified")
 			return
 		}
-		log.Debug("exload called with args:", args)
-		log.Debug("exload called with indexDir:", indexDir)
-		log.Debug("exload called with dataDir:", exloadArg.dataDir)
+		debug.Debug("exload called with args:", args)
+		debug.Debug("exload called with indexDir:", indexDir)
+		debug.Debug("exload called with dataDir:", exloadArg.dataDir)
 		err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
 		if err != nil {
-			log.OnError(err)
+			debug.OnError(err)
 		}
 
 	},
@@ -92,11 +92,8 @@ func init() {
 	// exloadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-// rename application variables
-var searchEngine = globals.SearchEngine
-
 func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
-	log.Debug(fmt.Sprintf("createAndPopulateIndex from %v to %v", dataDir, indexDir))
+	debug.Debug(fmt.Sprintf("createAndPopulateIndex from %v to %v", dataDir, indexDir))
 	f, err := os.Stat(indexDir)
 	if err == nil {
 		if !force {
@@ -106,8 +103,8 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 		if !f.IsDir() {
 			return errors.New(fmt.Sprint("is a file:", indexDir))
 		}
-		log.Debug("forcibly deleting indexDir:", indexDir)
-		if err = os.Remove(indexDir); err != nil {
+		debug.Debug("forcibly deleting indexDir:", indexDir)
+		if err = os.RemoveAll(indexDir); err != nil {
 			return err
 		}
 	}
@@ -116,7 +113,13 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 		return err
 	}
 
-	log.Debug("index directory created, starting to index")
+	debug.Debug("index directory created, starting to index")
+	globals.SearchEngine, err = search.OpenIndex(indexDir)
+	if err != nil {
+		return err
+	}
+	// rename application variables
+	var searchEngine = globals.SearchEngine
 
 	files, err := ioutil.ReadDir(dataDir)
 	if err != nil {
@@ -129,7 +132,11 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 			AccessTime: file.ModTime(),
 		}
 
-		searchEngine.Enqueue(doc)
+		err = searchEngine.Enqueue(doc)
+		if err != nil  {
+			return err
+		}
+		debug.Debug("indexed", doc.Id)
 	}
 
 	return nil

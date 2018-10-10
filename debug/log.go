@@ -1,29 +1,29 @@
-package log
+package debug
 
-import "log"
+import "fmt"
 
 //go:generate stringer -type LogLevel
 
 type LogLevel int
 const (
 	LOG_NONE LogLevel = iota
-	LOG_DEBUG
 	LOG_WARN
+	LOG_DEBUG
 )
 var Level = LOG_NONE
 
 func Debug(args ...interface{}) {
 	if Level >= LOG_DEBUG {
-		log.Println(args...)
+		fmt.Println(args...)
 	}
 }
 
 func Warn(args ...interface{}) {
 	if Level >= LOG_WARN {
-		log.Println(args...)
+		fmt.Println(args...)
 	}
 }
 
 func OnError(err error) {
-	log.Println(err)
+	fmt.Println(err)
 }
