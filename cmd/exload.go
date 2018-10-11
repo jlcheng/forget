@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 var exloadArg = struct {
@@ -72,7 +73,10 @@ exloads will not recurse inside the data directory - only the top level is used.
 		if err != nil {
 			debug.OnError(err)
 		}
-
+		err = IterateDocuments(globals.SearchEngine, nil)
+		if err != nil {
+			debug.OnError(err)
+		}
 	},
 }
 
@@ -113,11 +117,12 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 		return err
 	}
 
-	debug.Debug("index directory created, starting to index")
 	globals.SearchEngine, err = search.OpenIndex(indexDir)
 	if err != nil {
 		return err
 	}
+	debug.Debug("index directory created, starting to index")
+
 	// rename application variables
 	var searchEngine = globals.SearchEngine
 
@@ -128,7 +133,7 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 	for _, file := range files {
 		doc := search.Document{
 			Id: file.Name(),
-			Body: file.Name(),
+			Body: debugReadFile(filepath.Join(dataDir, file.Name())),
 			AccessTime: file.ModTime(),
 		}
 
@@ -139,5 +144,33 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 		debug.Debug("indexed", doc.Id)
 	}
 
+	return nil
+}
+
+func debugReadFile(fileName string) string {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return fmt.Sprintf("%v", err)
+	}
+	s, err := ioutil.ReadAll(f)
+	if err != nil {
+		return fmt.Sprintf("%v", err)
+	}
+	return string(s)
+}
+
+type IDHandler func(param ...interface{}) error
+// IterateDocuments
+func IterateDocuments(searchEngine *search.SearchEngine, foo IDHandler) error {
+	docs, err := searchEngine.Search("*")
+	if err != nil {
+		return err
+	}
+	for idx, doc := range docs {
+		debug.Debug(fmt.Sprintf("idx[%v]: %#v", idx, doc))
+		if foo != nil {
+			foo(idx, doc)
+		}
+	}
 	return nil
 }
