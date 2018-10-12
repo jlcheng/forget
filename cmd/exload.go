@@ -17,13 +17,13 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/jlcheng/forget/debug"
-	"github.com/jlcheng/forget/globals"
-	"github.com/jlcheng/forget/search"
+	"github.com/jlcheng/forget/trace"
+	"github.com/jlcheng/forget/recall"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 )
 
 var exloadArg = struct {
@@ -52,12 +52,17 @@ exloads will not recurse inside the data directory - only the top level is used.
 	Run: func(cmd *cobra.Command, args []string) {
 		switch logLevelStr {
 		case "DEBUG":
-			debug.Level = debug.LOG_DEBUG
+			trace.Level = trace.LOG_DEBUG
 		case "WARN":
-			debug.Level = debug.LOG_WARN
+			trace.Level = trace.LOG_WARN
 		default:
-			debug.Level = debug.LOG_NONE
+			trace.Level = trace.LOG_NONE
 		}
+		var property int64 = 1234
+		pval := reflect.ValueOf(property)
+		fmt.Println(pval)
+
+
 		if indexDir == "" {
 			fmt.Println("index must be specified")
 			return
@@ -66,16 +71,16 @@ exloads will not recurse inside the data directory - only the top level is used.
 			fmt.Println("dataDir must be specified")
 			return
 		}
-		debug.Debug("exload called with args:", args)
-		debug.Debug("exload called with indexDir:", indexDir)
-		debug.Debug("exload called with dataDir:", exloadArg.dataDir)
-		err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
+		trace.Debug("exload called with args:", args)
+		trace.Debug("exload called with indexDir:", indexDir)
+		trace.Debug("exload called with dataDir:", exloadArg.dataDir)
+		atlas, err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
 		if err != nil {
-			debug.OnError(err)
+			trace.OnError(err)
 		}
-		err = IterateDocuments(globals.SearchEngine, nil)
+		err = IterateDocuments(atlas, nil)
 		if err != nil {
-			debug.OnError(err)
+			trace.OnError(err)
 		}
 	},
 }
@@ -96,55 +101,52 @@ func init() {
 	// exloadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
-	debug.Debug(fmt.Sprintf("createAndPopulateIndex from %v to %v", dataDir, indexDir))
+func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*recall.Atlas, error) {
+	trace.Debug(fmt.Sprintf("createAndPopulateIndex from %v to %v", dataDir, indexDir))
 	f, err := os.Stat(indexDir)
 	if err == nil {
 		if !force {
-			return errors.New(fmt.Sprint("directory already exists:", indexDir))
+			return nil, errors.New(fmt.Sprint("directory already exists:", indexDir))
 		}
 		// delete and recreate index
 		if !f.IsDir() {
-			return errors.New(fmt.Sprint("is a file:", indexDir))
+			return nil, errors.New(fmt.Sprint("is a file:", indexDir))
 		}
-		debug.Debug("forcibly deleting indexDir:", indexDir)
+		trace.Debug("forcibly deleting indexDir:", indexDir)
 		if err = os.RemoveAll(indexDir); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	if err = os.Mkdir(indexDir, 0755); err != nil {
-		return err
+		return nil, err
 	}
 
-	globals.SearchEngine, err = search.OpenIndex(indexDir)
+	atlas, err := recall.Open(indexDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	debug.Debug("index directory created, starting to index")
-
-	// rename application variables
-	var searchEngine = globals.SearchEngine
+	trace.Debug("index directory created, starting to index")
 
 	files, err := ioutil.ReadDir(dataDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, file := range files {
-		doc := search.Document{
-			Id: file.Name(),
-			Body: debugReadFile(filepath.Join(dataDir, file.Name())),
-			AccessTime: file.ModTime(),
+		doc := recall.Document{
+			file.Name(),
+			debugReadFile(filepath.Join(dataDir, file.Name())),
+			file.ModTime().Unix(),
 		}
 
-		err = searchEngine.Enqueue(doc)
+		err = atlas.Enqueue(doc)
 		if err != nil  {
-			return err
+			return nil, err
 		}
-		debug.Debug("indexed", doc.Id)
+		trace.Debug("indexed", doc.ID)
 	}
 
-	return nil
+	return atlas, nil
 }
 
 func debugReadFile(fileName string) string {
@@ -161,13 +163,13 @@ func debugReadFile(fileName string) string {
 
 type IDHandler func(param ...interface{}) error
 // IterateDocuments
-func IterateDocuments(searchEngine *search.SearchEngine, foo IDHandler) error {
+func IterateDocuments(searchEngine *recall.Atlas, foo IDHandler) error {
 	docs, err := searchEngine.Search("*")
 	if err != nil {
 		return err
 	}
 	for idx, doc := range docs {
-		debug.Debug(fmt.Sprintf("idx[%v]: %#v", idx, doc))
+		trace.Debug(fmt.Sprintf("idx[%v]: %#v", idx, doc))
 		if foo != nil {
 			foo(idx, doc)
 		}
