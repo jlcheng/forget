@@ -85,12 +85,12 @@ func init() {
 
 func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*db.Atlas, error) {
 	trace.Debug(fmt.Sprintf("createAndPopulateIndex from (%v) to (%v)", dataDir, indexDir))
-	f, err := os.Stat(indexDir)
-	if err == nil {
+
+	// If indexDir exists, delete it or return error
+	if f, err := os.Stat(indexDir); err == nil {
 		if !force {
 			return nil, errors.New(fmt.Sprint("directory already exists:", indexDir))
 		}
-		// delete and recreate index
 		if !f.IsDir() {
 			return nil, errors.New(fmt.Sprint("is a file:", indexDir))
 		}
@@ -100,7 +100,8 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*db.Atlas, er
 		}
 	}
 
-	if err = os.Mkdir(indexDir, 0755); err != nil {
+	// Create the indexDir
+	if err := os.Mkdir(indexDir, 0755); err != nil {
 		return nil, err
 	}
 
@@ -110,25 +111,49 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*db.Atlas, er
 	}
 	trace.Debug("index directory created, starting to index")
 
-	files, err := ioutil.ReadDir(dataDir)
+	err = filepath.Walk(dataDir, atlasFileVisitor(atlas))
 	if err != nil {
 		return nil, err
 	}
-	for _, file := range files {
-		doc := db.Note{
-			file.Name(),
-			debugReadFile(filepath.Join(dataDir, file.Name())),
-			file.ModTime().Unix(),
+	return atlas, nil
+}
+
+func atlasFileVisitor(atlas *db.Atlas) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		// Send error to trace.Debug
+		if err != nil {
+			trace.Debug(err)
 		}
 
+		// Do not index .git
+		if strings.HasSuffix(path, ".git") {
+			return filepath.SkipDir
+		}
+
+		// File name must contain a '.'
+		if strings.LastIndexByte(path, '.') < strings.LastIndexByte(path, '/') {
+			return nil
+		}
+
+		// Do not index a directory
+		if info.IsDir() {
+			return nil
+		}
+
+		// Finally, index the heck of this file
+		doc := db.Note{
+			ID: path,
+			Body: debugReadFile(path),
+			Title: info.Name(),
+			AccessTime: info.ModTime().Unix(),
+		}
 		err = atlas.Enqueue(doc)
 		if err != nil  {
-			return nil, err
+			return err
 		}
 		trace.Debug("indexed", doc.ID)
+		return nil
 	}
-
-	return atlas, nil
 }
 
 func debugReadFile(fileName string) string {

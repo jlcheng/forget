@@ -18,12 +18,14 @@ import (
 const (
 	BODY = "Body"
 	ACCESS_TIME = "AccessTime"
+	TITLE = "Title"
 )
 
 // The bleve-type resolves to "_default", see bleve/mapping/index.IndexMappingImpl.determineType()
 type Note struct {
 	ID         string
 	Body       string
+	Title      string   // some short title of this note
 	AccessTime int64    // time.Unix(), see NewIndexMapping():accessTime_fmap for FieldMapping
 }
 
@@ -31,6 +33,7 @@ func (s Note) PrettyString() string {
 	var buf bytes.Buffer
 	buf.WriteString(fmt.Sprintf("note.ID: %v\n", s.ID))
 	buf.WriteString(fmt.Sprintf("  note.AccessTime: %d\n", s.AccessTime))
+	buf.WriteString(fmt.Sprintf("  note.Title: %v\n", s.Title))
 	snippet := s.Body
 	snippet = strings.Replace(snippet, "\n", " ", -1)
 	snippet = snippet[:int(math.Min(80, float64(len(snippet))))]
@@ -106,24 +109,6 @@ func NewIndexMapping() mapping.IndexMapping {
 	return imap
 }
 
-func debugDocument(doc *search.DocumentMatch) {
-	trace.Debug("doc.ID:", doc.ID)
-	for key, field := range doc.Fields {
-		snippet := ""
-		switch key {
-		case "AccessTime":
-			snippet = fmt.Sprintf("%d", int(field.(float64)))
-		default:
-			snippet = fmt.Sprintf("%v", field)
-		}
-
-		snippet = strings.Replace(snippet, "\n", " ", -1)
-		snippet = snippet[:int(math.Min(20, float64(len(snippet))))]
-		trace.Debug(fmt.Sprintf("  fld[%v]: %v", key, snippet))
-	}
-	trace.Debug("")
-}
-
 func toNote(doc *search.DocumentMatch) Note {
 	note := Note{}
 	note.ID = doc.ID
@@ -135,6 +120,11 @@ func toNote(doc *search.DocumentMatch) Note {
 	if body, ok := doc.Fields[BODY]; ok {
 		if v, ok := body.(string); ok {
 			note.Body = v
+		}
+	}
+	if title, ok := doc.Fields[TITLE]; ok {
+		if v, ok := title.(string); ok {
+			note.Title = v
 		}
 	}
 	return note
