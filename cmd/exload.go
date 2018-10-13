@@ -17,13 +17,13 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/trace"
-	"github.com/jlcheng/forget/recall"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"reflect"
+	"strings"
 )
 
 var exloadArg = struct {
@@ -50,18 +50,7 @@ exloads will fail if the index path is non-empty.
 exloads will not recurse inside the data directory - only the top level is used.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		switch logLevelStr {
-		case "DEBUG":
-			trace.Level = trace.LOG_DEBUG
-		case "WARN":
-			trace.Level = trace.LOG_WARN
-		default:
-			trace.Level = trace.LOG_NONE
-		}
-		var property int64 = 1234
-		pval := reflect.ValueOf(property)
-		fmt.Println(pval)
-
+		setDebugLevel()
 
 		if indexDir == "" {
 			fmt.Println("index must be specified")
@@ -71,14 +60,7 @@ exloads will not recurse inside the data directory - only the top level is used.
 			fmt.Println("dataDir must be specified")
 			return
 		}
-		trace.Debug("exload called with args:", args)
-		trace.Debug("exload called with indexDir:", indexDir)
-		trace.Debug("exload called with dataDir:", exloadArg.dataDir)
-		atlas, err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
-		if err != nil {
-			trace.OnError(err)
-		}
-		err = IterateDocuments(atlas, nil)
+		_, err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
 		if err != nil {
 			trace.OnError(err)
 		}
@@ -101,8 +83,8 @@ func init() {
 	// exloadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*recall.Atlas, error) {
-	trace.Debug(fmt.Sprintf("createAndPopulateIndex from %v to %v", dataDir, indexDir))
+func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*db.Atlas, error) {
+	trace.Debug(fmt.Sprintf("createAndPopulateIndex from (%v) to (%v)", dataDir, indexDir))
 	f, err := os.Stat(indexDir)
 	if err == nil {
 		if !force {
@@ -122,7 +104,7 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*recall.Atlas
 		return nil, err
 	}
 
-	atlas, err := recall.Open(indexDir)
+	atlas, err := db.Open(indexDir)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +115,7 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*recall.Atlas
 		return nil, err
 	}
 	for _, file := range files {
-		doc := recall.Document{
+		doc := db.Note{
 			file.Name(),
 			debugReadFile(filepath.Join(dataDir, file.Name())),
 			file.ModTime().Unix(),
@@ -161,18 +143,13 @@ func debugReadFile(fileName string) string {
 	return string(s)
 }
 
-type IDHandler func(param ...interface{}) error
-// IterateDocuments
-func IterateDocuments(searchEngine *recall.Atlas, foo IDHandler) error {
-	docs, err := searchEngine.Search("*")
-	if err != nil {
-		return err
+func setDebugLevel() {
+	switch strings.ToUpper(logLevelStr) {
+	case "DEBUG":
+		trace.Level = trace.LOG_DEBUG
+	case "WARN":
+		trace.Level = trace.LOG_WARN
+	default:
+		trace.Level = trace.LOG_NONE
 	}
-	for idx, doc := range docs {
-		trace.Debug(fmt.Sprintf("idx[%v]: %#v", idx, doc))
-		if foo != nil {
-			foo(idx, doc)
-		}
-	}
-	return nil
 }

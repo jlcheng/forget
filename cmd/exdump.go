@@ -16,8 +16,10 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/jlcheng/forget/db"
+	"github.com/jlcheng/forget/trace"
 	"github.com/spf13/cobra"
+	"log"
 )
 
 // exdumpCmd represents the exdump command
@@ -26,7 +28,16 @@ var exdumpCmd = &cobra.Command{
 	Short: "Dumps the index into the specified directory.",
 	Long:  "Dumps the index into the specified directory.",
 	Run: func(cmd *cobra.Command, args []string) {
+		setDebugLevel()
 		fmt.Println("exdump called")
+		atlas, err := db.Open(indexDir)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err = IterateDocuments(atlas, nil); err != nil {
+			log.Fatal(err)
+		}
+		atlas.Close()
 	},
 }
 
@@ -43,3 +54,21 @@ func init() {
 	// is called directly, e.g.:
 	// exdumpCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
+
+type IDHandler func(param ...interface{}) error
+// IterateDocuments
+func IterateDocuments(atlas *db.Atlas, foo IDHandler) error {
+	trace.Debug("IterateDocuments")
+	docs, err := atlas.DumpAll()
+	if err != nil {
+		return err
+	}
+	for idx, doc := range docs {
+		trace.Debug(doc.PrettyString())
+		if foo != nil {
+			foo(idx, doc)
+		}
+	}
+	return nil
+}
+
