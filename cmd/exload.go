@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var exloadArg = struct {
@@ -111,18 +112,32 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*db.Atlas, er
 	}
 	trace.Debug("index directory created, starting to index")
 
-	err = filepath.Walk(dataDir, atlasFileVisitor(atlas))
+	stime := time.Now()
+	helper := &indexHelper{atlas:atlas}
+	err = filepath.Walk(dataDir, helper.fileVisitor)
+	fmt.Printf("index stats: count: %v, total bytes: %v kb, elapsed time: %v\n",
+		helper.count, helper.totalSize/1024, time.Since(stime))
 	if err != nil {
 		return nil, err
 	}
 	return atlas, nil
 }
 
-func atlasFileVisitor(atlas *db.Atlas) filepath.WalkFunc {
-	return func(path string, info os.FileInfo, err error) error {
+type indexHelper struct {
+	atlas *db.Atlas
+	totalSize int64
+	count int
+}
+func (i *indexHelper) fileVisitor(path string, info os.FileInfo, err error) error {
 		// Send error to trace.Debug
 		if err != nil {
 			trace.Debug(err)
+			return nil
+		}
+
+		// Do not index directories
+		if info.IsDir() {
+			return nil
 		}
 
 		// Do not index .git
@@ -135,26 +150,23 @@ func atlasFileVisitor(atlas *db.Atlas) filepath.WalkFunc {
 			return nil
 		}
 
-		// Do not index a directory
-		if info.IsDir() {
-			return nil
-		}
-
-		// Finally, index the heck of this file
+		// Finally, index the heck out of this file
 		doc := db.Note{
 			ID: path,
 			Body: debugReadFile(path),
 			Title: info.Name(),
 			AccessTime: info.ModTime().Unix(),
 		}
-		err = atlas.Enqueue(doc)
+		err = i.atlas.Enqueue(doc)
 		if err != nil  {
 			return err
 		}
+		i.totalSize =+ info.Size()
+		i.count = i.count + 1
 		trace.Debug("indexed", doc.ID)
 		return nil
-	}
 }
+
 
 func debugReadFile(fileName string) string {
 	f, err := os.Open(fileName)

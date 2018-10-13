@@ -42,7 +42,7 @@ func init() {
 
 
 	// Our own custom flags
-	rootCmd.PersistentFlags().StringVar(&indexDir, "indexDir", "", "path to the index directory")
+	rootCmd.PersistentFlags().StringVarP(&indexDir, "indexDir", "i", "", "path to the index directory")
 	rootCmd.PersistentFlags().StringVar(&logLevelStr, "log", "None", "log level: NONE, DEBUG, or WARN")
 
 }

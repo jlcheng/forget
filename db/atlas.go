@@ -25,8 +25,9 @@ const (
 type Note struct {
 	ID         string
 	Body       string
-	Title      string   // some short title of this note
-	AccessTime int64    // time.Unix(), see NewIndexMapping():accessTime_fmap for FieldMapping
+	Title      string       // some short title of this note
+	Fragments  interface{}  // only used for query results, show a snippet of text around found terms
+	AccessTime int64        // time.Unix(), see NewIndexMapping():accessTime_fmap for FieldMapping
 }
 
 func (s Note) PrettyString() string {
@@ -70,6 +71,24 @@ func (s *Atlas) Enqueue(doc Note) error {
 	return s.index.Index(doc.ID, doc)
 }
 
+func (s *Atlas) QueryString(qstr string) ([]Note, error) {
+	q := query.NewQueryStringQuery(qstr)
+	sr := bleve.NewSearchRequest(q)
+	sr.SortBy([]string{ACCESS_TIME})
+	sr.Fields = []string{"*"}
+	sr.IncludeLocations = true
+	sr.Highlight = bleve.NewHighlight()
+	results, err := s.index.Search(sr)
+	if err != nil {
+		return nil, err
+	}
+	notes := make([]Note, len(results.Hits))
+	for idx, _ := range notes {
+		notes[idx] = toNote(results.Hits[idx])
+	}
+	return notes, nil
+}
+
 func (s *Atlas) DumpAll() ([]Note, error) {
 	if dc, err := s.index.DocCount(); err != nil {
 		return nil, err
@@ -87,8 +106,7 @@ func (s *Atlas) DumpAll() ([]Note, error) {
 
 	notes := make([]Note, len(results.Hits))
 	for idx, _ := range notes {
-		dm := results.Hits[idx]
-		notes[idx] = toNote(dm)
+		notes[idx] = toNote(results.Hits[idx])
 	}
 	return notes, nil
 }
@@ -126,6 +144,9 @@ func toNote(doc *search.DocumentMatch) Note {
 		if v, ok := title.(string); ok {
 			note.Title = v
 		}
+	}
+	if doc.Fragments != nil {
+		note.Fragments = doc.Fragments
 	}
 	return note
 }
