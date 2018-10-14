@@ -19,6 +19,8 @@ const (
 	BODY = "Body"
 	ACCESS_TIME = "AccessTime"
 	TITLE = "Title"
+
+	DEFAULT_BATCH_SIZE = 64
 )
 
 // The bleve-type resolves to "_default", see bleve/mapping/index.IndexMappingImpl.determineType()
@@ -46,21 +48,37 @@ type Atlas struct {
 	// here's to hope that bleve+scorch goes the way of lucene rather than kestrel
 	// expected impl is blevesearch/bleve.indexImpl
 	index bleve.Index
+
+	indexBuffer *bleve.Batch    // allow index operations to be batched
+	batchCount uint32           // counter for batching
+	BatchMax uint32             // max batch size
+
 }
 
 func Open(path string) (*Atlas, error) {
 	index, err := bleve.OpenUsing(path, map[string]interface{}{})
 	if err == nil {
-		return &Atlas{index:index}, nil
+		atlas := &Atlas{index:index}
+		atlas.initNewAtlas()
+		return atlas, nil
 	}
 
 	index, err = bleve.NewUsing(path, NewIndexMapping(), scorch.Name, scorch.Name, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &Atlas{
-		index: index,
-	}, nil
+	atlas := &Atlas{index:index}
+	atlas.initNewAtlas()
+	return atlas, nil
+}
+func (s *Atlas) initNewAtlas() {
+	if s.indexBuffer != nil {
+		panic("atlas already initialized")
+	}
+
+	s.indexBuffer = s.index.NewBatch()
+	s.batchCount = 0
+	s.BatchMax = DEFAULT_BATCH_SIZE
 }
 
 func (s *Atlas) Close() error {
