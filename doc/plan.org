@@ -9,6 +9,37 @@
 # C-c a t 2 r - show all DONE items 
 # Ctrl-Shift-Return - add new
 # C-c / t - show todos only
+# Local Variables:
+# fill-column: 120
+# End:
 * TODO Research "bleve zip" and "bleve scorch" commands
+  - Note taken on [2018-10-14 Sun 11:51] \\
+    Though I'm not sure if I totally care. I have many things to read and I don't see the purpose of fully understanding
+    this if I don't have further troubles with scorch.
   - Note taken on [2018-10-09 Tue 10:22] \\
     as suggested by @mschoch on gitter.im
+* TODO Design: How to batch index documents?
+  arrivals      // notifies us of a new doc to be indexed
+  finish        // notifies us that the system is shutting down
+  timer         // notifies that it is time to to commit any batched docs
+
+  begin         // callback: beginning of a batch
+  commit        // callback: end of a batch
+  		//  What should be the signature of these functions? They need to modify the 'buffer' variable that
+		//  arrival and finish code refer to and do it in a safe way.
+		
+  buffer        // new arrivals are stored here
+* TODO Have a plan for describing, indexing, and recalling words with multiple meanings
+  - Note taken on [2018-10-14 Sun 07:42] \\
+    As an example, the word 'terminal' has different meanings based on its context.
+    If the context is "shell scripting", then terminal means that thing you're
+    typing into. 
+    
+    If the context is "Backus–Naur Form" then 'terminal' means "tokens",
+    "smallest block in our BNF grammar".
+
+    It is clear in this case, we don't want to treat terms and defintions simply as
+    terminal (title) => thing you're typing into (body)
+    We'll need some other attribute to describe the idea of context; Or perhaps deduce
+    context from the body.
+  
