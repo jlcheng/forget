@@ -1,17 +1,11 @@
 #+STARTUP: showeverything
-#+STARTUP: hidestars
-# c-C a a - agenda view
-# c-C a t - global todo list
-# r       - refresh agenda view
-# C-c a a - org-agenda-list. This is where you want to do most of your work (P, N, F, o)
-# C-c C-d - add deadline (followed by 'Mon', 'Tues'...'Sun' or 1,2...31)
-# C-c C-z - add note
-# C-c a t 2 r - show all DONE items 
-# Ctrl-Shift-Return - add new
-# C-c / t - show todos only
+#+STARTUP: indent
 # Local Variables:
 # fill-column: 120
 # End:
+# C-c a t 2 r - show all DONE items 
+# Ctrl-Shift-Return - add new
+# C-c / t - show todos only
 * TODO Research "bleve zip" and "bleve scorch" commands
   - Note taken on [2018-10-14 Sun 11:51] \\
     Though I'm not sure if I totally care. I have many things to read and I don't see the purpose of fully understanding
@@ -19,16 +13,20 @@
   - Note taken on [2018-10-09 Tue 10:22] \\
     as suggested by @mschoch on gitter.im
 * TODO Design: How to batch index documents?
-  arrivals      // notifies us of a new doc to be indexed
-  finish        // notifies us that the system is shutting down
-  timer         // notifies that it is time to to commit any batched docs
+  index         // The index to create a batch and process it
+  batch         // The currently active batch
+                // - Attempts to send to the batcher should drop items on the floor after finish.
+                // - Receivers should stop reading from arrivals. Any theortical messages-in-fligt will be dropped.
 
-  begin         // callback: beginning of a batch
-  commit        // callback: end of a batch
-  		//  What should be the signature of these functions? They need to modify the 'buffer' variable that
-		//  arrival and finish code refer to and do it in a safe way.
-		
-  buffer        // new arrivals are stored here
+  size          // The size of a batch
+** Atlas Design
+index         // The bleve.Index
+
+// --- Reader --- //
+N/A
+
+// --- Writer --- //
+// consider filling up a channel with items, when it is full, send the channel's contents downstream for batch processing.
 * TODO Have a plan for describing, indexing, and recalling words with multiple meanings
   - Note taken on [2018-10-14 Sun 07:42] \\
     As an example, the word 'terminal' has different meanings based on its context.

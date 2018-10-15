@@ -4,7 +4,7 @@ GOGEN=go generate
 all: generate build
 
 generate:
-	$(GOGEN) debug/log.go
+	$(GOGEN) trace/log.go
 
 build: 4gt
 

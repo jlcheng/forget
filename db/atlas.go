@@ -20,16 +20,16 @@ const (
 	ACCESS_TIME = "AccessTime"
 	TITLE = "Title"
 
-	DEFAULT_BATCH_SIZE = 64
+	DEFAULT_BATCH_SIZE = 1024
 )
 
 // The bleve-type resolves to "_default", see bleve/mapping/index.IndexMappingImpl.determineType()
 type Note struct {
 	ID         string
 	Body       string
-	Title      string       // some short title of this note
-	Fragments  interface{}  // only used for query results, show a snippet of text around found terms
-	AccessTime int64        // time.Unix(), see NewIndexMapping():accessTime_fmap for FieldMapping
+	Title      string                   // some short title of this note
+	Fragments  search.FieldFragmentMap  // only used for query results, show a snippet of text around found terms
+	AccessTime int64                    // time.Unix(), see NewIndexMapping():accessTime_fmap for FieldMapping
 }
 
 func (s Note) PrettyString() string {
@@ -49,44 +49,44 @@ type Atlas struct {
 	// expected impl is blevesearch/bleve.indexImpl
 	index bleve.Index
 
-	indexBuffer *bleve.Batch    // allow index operations to be batched
-	batchCount uint32           // counter for batching
-	BatchMax uint32             // max batch size
-
+	batcher *Batcher
 }
 
-func Open(path string) (*Atlas, error) {
+func Open(path string, size uint) (*Atlas, error) {
 	index, err := bleve.OpenUsing(path, map[string]interface{}{})
 	if err == nil {
-		atlas := &Atlas{index:index}
-		atlas.initNewAtlas()
-		return atlas, nil
+		return NewAtlas(index, size), nil
 	}
 
 	index, err = bleve.NewUsing(path, NewIndexMapping(), scorch.Name, scorch.Name, nil)
 	if err != nil {
 		return nil, err
 	}
-	atlas := &Atlas{index:index}
-	atlas.initNewAtlas()
-	return atlas, nil
+	return NewAtlas(index, size), nil
 }
-func (s *Atlas) initNewAtlas() {
-	if s.indexBuffer != nil {
-		panic("atlas already initialized")
+func NewAtlas(index bleve.Index, size uint) *Atlas {
+	return &Atlas{
+		index: index,
+		batcher: NewBatcher(size, index),
 	}
-
-	s.indexBuffer = s.index.NewBatch()
-	s.batchCount = 0
-	s.BatchMax = DEFAULT_BATCH_SIZE
 }
 
 func (s *Atlas) Close() error {
+	s.Flush()
+	s.batcher.Close()
 	return s.index.Close()
 }
 
-func (s *Atlas) Enqueue(doc Note) error {
-	return s.index.Index(doc.ID, doc)
+func (s *Atlas) Enqueue(note Note) {
+	s.batcher.Send(note)
+}
+
+func (s *Atlas) Flush() {
+	s.batcher.Flush()
+}
+
+func (s *Atlas) GetDocCount() (uint64, error) {
+	return s.index.DocCount()
 }
 
 func (s *Atlas) QueryString(qstr string) ([]Note, error) {

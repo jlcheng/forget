@@ -1,36 +1,68 @@
 package db
 
 import (
+	"fmt"
+	"github.com/jlcheng/forget/thelp"
+	"sync"
 	"testing"
-	"time"
 )
 
-var tBuf IndexBuffer
+func TestNonFull(t *testing.T) {
+	index, err := thelp.TempIndex()
+	if err != nil {
+		t.Error(err)
+	}
+	defer thelp.CleanUpIndex(t, index)
 
-func reset() {
-	tBuf = IndexBuffer{
-		buf: make([]Note, 0),
-		notes: make(chan Note, 64),
-		stop: make(chan bool),
-		maxBufSize: 64,
-		processed: 0,
+	b := NewBatcher(10, index)
+	b.Send(Note{ID:"1"})
+	b.Close()
+
+	if count, _  := index.DocCount(); count != 1 {
+		t.Error(count)
 	}
 }
 
-func TestSend(t *testing.T) {
-	reset()
-	tBuf.StartProcessing()
-	tBuf.SendNote(NewNote("1"))
-	close(tBuf.stop)
-	time.Sleep(4*time.Second)
+func TestFull(t *testing.T) {
+	index, err := thelp.TempIndex()
+	if err != nil {
+		t.Error(err)
+	}
+	defer thelp.CleanUpIndex(t, index)
+
+	size := 10
+	b := NewBatcher(uint(size), index)
+	for i := 0; i < size; i++ {
+		b.Send(Note{ID:fmt.Sprint(i)})
+	}
+	b.Close()
+
+	if count, _  := index.DocCount(); int(count) != size {
+		t.Error("count", count)
+	}
 }
 
-func NewNote(ID string) Note {
-	return Note{
-		ID: ID,
-		Body: "",
-		Title: "",
-		Fragments: nil,
-		AccessTime: 0,
+func TestLargeSet(t *testing.T) {
+	index, err := thelp.TempIndex()
+	if err != nil {
+		t.Error(err)
+	}
+	defer thelp.CleanUpIndex(t, index)
+
+	size := 10000
+	b := NewBatcher(uint(size), index)
+	var wg sync.WaitGroup
+	for i := 0; i < size; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			b.Send(Note{ID: fmt.Sprint(idx)})
+		}(i)
+	}
+	wg.Wait()
+	b.Close()
+
+	if count, _  := index.DocCount(); int(count) != size {
+		t.Error("count", count)
 	}
 }

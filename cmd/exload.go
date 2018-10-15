@@ -61,7 +61,7 @@ exloads will not recurse inside the data directory - only the top level is used.
 			fmt.Println("dataDir must be specified")
 			return
 		}
-		_, err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
+		err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
 		if err != nil {
 			trace.OnError(err)
 		}
@@ -84,43 +84,48 @@ func init() {
 	// exloadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func CreateAndPopulateIndex(dataDir, indexDir string, force bool) (*db.Atlas, error) {
+func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 	trace.Debug(fmt.Sprintf("createAndPopulateIndex from (%v) to (%v)", dataDir, indexDir))
 
 	// If indexDir exists, delete it or return error
 	if f, err := os.Stat(indexDir); err == nil {
 		if !force {
-			return nil, errors.New(fmt.Sprint("directory already exists:", indexDir))
+			return errors.New(fmt.Sprint("directory already exists:", indexDir))
 		}
 		if !f.IsDir() {
-			return nil, errors.New(fmt.Sprint("is a file:", indexDir))
+			return errors.New(fmt.Sprint("is a file:", indexDir))
 		}
 		trace.Debug("forcibly deleting indexDir:", indexDir)
 		if err = os.RemoveAll(indexDir); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	// Create the indexDir
 	if err := os.Mkdir(indexDir, 0755); err != nil {
-		return nil, err
+		return err
 	}
 
-	atlas, err := db.Open(indexDir)
+	atlas, err := db.Open(indexDir, 1024)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	trace.Debug("index directory created, starting to index")
 
 	stime := time.Now()
 	helper := &indexHelper{atlas:atlas}
 	err = filepath.Walk(dataDir, helper.fileVisitor)
+	atlas.Close()
 	fmt.Printf("index stats: count: %v, total bytes: %v kb, elapsed time: %v\n",
 		helper.count, helper.totalSize/1024, time.Since(stime))
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return atlas, nil
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type indexHelper struct {
@@ -157,11 +162,11 @@ func (i *indexHelper) fileVisitor(path string, info os.FileInfo, err error) erro
 			Title: info.Name(),
 			AccessTime: info.ModTime().Unix(),
 		}
-		err = i.atlas.Enqueue(doc)
+		i.atlas.Enqueue(doc)
 		if err != nil  {
 			return err
 		}
-		i.totalSize =+ info.Size()
+		i.totalSize = i.totalSize + info.Size()
 		i.count = i.count + 1
 		trace.Debug("indexed", doc.ID)
 		return nil
@@ -173,6 +178,7 @@ func debugReadFile(fileName string) string {
 	if err != nil {
 		return fmt.Sprintf("%v", err)
 	}
+	defer f.Close()
 	s, err := ioutil.ReadAll(f)
 	if err != nil {
 		return fmt.Sprintf("%v", err)
