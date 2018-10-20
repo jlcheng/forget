@@ -53,7 +53,7 @@ exloads will not recurse inside the data directory - only the top level is used.
 	Run: func(cmd *cobra.Command, args []string) {
 		setDebugLevel()
 
-		if indexDir == "" {
+		if IndexDir() == "" {
 			fmt.Println("index must be specified")
 			return
 		}
@@ -61,7 +61,7 @@ exloads will not recurse inside the data directory - only the top level is used.
 			fmt.Println("dataDir must be specified")
 			return
 		}
-		err := CreateAndPopulateIndex(exloadArg.dataDir, indexDir, exloadArg.force)
+		err := CreateAndPopulateIndex(exloadArg.dataDir, IndexDir(), exloadArg.force)
 		if err != nil {
 			trace.OnError(err)
 		}
@@ -184,15 +184,4 @@ func debugReadFile(fileName string) string {
 		return fmt.Sprintf("%v", err)
 	}
 	return string(s)
-}
-
-func setDebugLevel() {
-	switch strings.ToUpper(logLevelStr) {
-	case "DEBUG":
-		trace.Level = trace.LOG_DEBUG
-	case "WARN":
-		trace.Level = trace.LOG_WARN
-	default:
-		trace.Level = trace.LOG_NONE
-	}
 }

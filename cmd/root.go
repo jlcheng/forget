@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/jlcheng/forget/trace"
 	"os"
+	"strings"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -40,11 +42,12 @@ func init() {
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.forget.yaml)")
 
-
 	// Our own custom flags
-	rootCmd.PersistentFlags().StringVarP(&indexDir, "indexDir", "i", "", "path to the index directory")
-	rootCmd.PersistentFlags().StringVar(&logLevelStr, "log", "None", "log level: NONE, DEBUG, or WARN")
+	rootCmd.PersistentFlags().StringP("indexDir", "i", "", "path to the index directory")
+	rootCmd.PersistentFlags().StringP("logLevel", "L", "None", "log level: NONE, DEBUG, or WARN")
 
+	viper.BindPFlag(INDEX_DIR, rootCmd.PersistentFlags().Lookup(INDEX_DIR))
+	viper.BindPFlag(LOG_LEVEL, rootCmd.PersistentFlags().Lookup(LOG_LEVEL))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -73,7 +76,23 @@ func initConfig() {
 	}
 }
 
+const (
+	INDEX_DIR = "indexDir"
+	LOG_LEVEL = "logLevel"
+)
 
 
-var indexDir string
-var logLevelStr string
+func IndexDir() string {
+	return viper.GetString(INDEX_DIR)
+}
+
+func setDebugLevel() {
+	switch strings.ToUpper(viper.GetString(LOG_LEVEL)) {
+	case "DEBUG":
+		trace.Level = trace.LOG_DEBUG
+	case "WARN":
+		trace.Level = trace.LOG_WARN
+	default:
+		trace.Level = trace.LOG_NONE
+	}
+}

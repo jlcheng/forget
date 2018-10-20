@@ -30,7 +30,7 @@ var exdumpCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		setDebugLevel()
 		fmt.Println("exdump called")
-		atlas, err := db.Open(indexDir, 16)
+		atlas, err := db.Open(IndexDir(), 16)
 		if err != nil {
 			log.Fatal(err)
 		}
