@@ -45,8 +45,7 @@ func (s Note) PrettyString() string {
 }
 
 type Atlas struct {
-	// here's to hope that bleve+scorch goes the way of lucene rather than kestrel
-	// expected impl is blevesearch/bleve.indexImpl
+	// Expected implementation is *bleve.indexImpl{}
 	index bleve.Index
 
 	batcher *Batcher

@@ -2,17 +2,17 @@ package db
 
 import (
 	"fmt"
-	"github.com/jlcheng/forget/thelp"
+	"github.com/jlcheng/forget/testkit"
 	"sync"
 	"testing"
 )
 
 func TestNonFull(t *testing.T) {
-	index, err := thelp.TempIndex()
+	index, err := testkit.TempIndex()
 	if err != nil {
 		t.Error(err)
 	}
-	defer thelp.CleanUpIndex(t, index)
+	defer testkit.CleanUpIndex(t, index)
 
 	b := NewBatcher(10, index)
 	b.Send(Note{ID:"1"})
@@ -24,11 +24,11 @@ func TestNonFull(t *testing.T) {
 }
 
 func TestFull(t *testing.T) {
-	index, err := thelp.TempIndex()
+	index, err := testkit.TempIndex()
 	if err != nil {
 		t.Error(err)
 	}
-	defer thelp.CleanUpIndex(t, index)
+	defer testkit.CleanUpIndex(t, index)
 
 	size := 10
 	b := NewBatcher(uint(size), index)
@@ -43,11 +43,11 @@ func TestFull(t *testing.T) {
 }
 
 func TestLargeSet(t *testing.T) {
-	index, err := thelp.TempIndex()
+	index, err := testkit.TempIndex()
 	if err != nil {
 		t.Error(err)
 	}
-	defer thelp.CleanUpIndex(t, index)
+	defer testkit.CleanUpIndex(t, index)
 
 	size := 10000
 	b := NewBatcher(uint(size), index)
