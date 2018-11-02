@@ -51,9 +51,9 @@ exloads will fail if the index path is non-empty.
 exloads will not recurse inside the data directory - only the top level is used.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		setDebugLevel()
+		CliCfg.SetTraceLevel()
 
-		if IndexDir() == "" {
+		if CliCfg.GetIndexDir() == "" {
 			fmt.Println("index must be specified")
 			return
 		}
@@ -61,7 +61,7 @@ exloads will not recurse inside the data directory - only the top level is used.
 			fmt.Println("dataDir must be specified")
 			return
 		}
-		err := CreateAndPopulateIndex(exloadArg.dataDir, IndexDir(), exloadArg.force)
+		err := CreateAndPopulateIndex(exloadArg.dataDir, CliCfg.GetIndexDir(), exloadArg.force)
 		if err != nil {
 			trace.OnError(err)
 		}

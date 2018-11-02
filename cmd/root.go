@@ -2,16 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jlcheng/forget/trace"
-	"os"
-	"strings"
-
+	"github.com/jlcheng/forget/cli"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 )
 
-var cfgFile string
+var CliCfg = cli.CLIConfig{}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -40,21 +38,21 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.forget.yaml)")
+	rootCmd.PersistentFlags().StringVar(&CliCfg.CfgFile, "config", "", "config file (default is $HOME/.forget.yaml)")
 
 	// Our own custom flags
 	rootCmd.PersistentFlags().StringP("indexDir", "i", "", "path to the index directory")
 	rootCmd.PersistentFlags().StringP("logLevel", "L", "None", "log level: NONE, DEBUG, or WARN")
 
-	viper.BindPFlag(INDEX_DIR, rootCmd.PersistentFlags().Lookup(INDEX_DIR))
-	viper.BindPFlag(LOG_LEVEL, rootCmd.PersistentFlags().Lookup(LOG_LEVEL))
+	viper.BindPFlag(cli.INDEX_DIR, rootCmd.PersistentFlags().Lookup(cli.INDEX_DIR))
+	viper.BindPFlag(cli.LOG_LEVEL, rootCmd.PersistentFlags().Lookup(cli.LOG_LEVEL))
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
+	if CliCfg.CfgFile != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
+		viper.SetConfigFile(CliCfg.CfgFile)
 	} else {
 		// Find home directory.
 		home, err := homedir.Dir()
@@ -73,26 +71,5 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
-}
-
-const (
-	INDEX_DIR = "indexDir"
-	LOG_LEVEL = "logLevel"
-)
-
-
-func IndexDir() string {
-	return viper.GetString(INDEX_DIR)
-}
-
-func setDebugLevel() {
-	switch strings.ToUpper(viper.GetString(LOG_LEVEL)) {
-	case "DEBUG":
-		trace.Level = trace.LOG_DEBUG
-	case "WARN":
-		trace.Level = trace.LOG_WARN
-	default:
-		trace.Level = trace.LOG_NONE
 	}
 }

@@ -19,9 +19,9 @@ var exqCmd = &cobra.Command{
 	Short: "Query the index",
 	Long: `Runs a query against the index`,
 	Run: func(cmd *cobra.Command, args []string) {
-		setDebugLevel()
+		CliCfg.SetTraceLevel()
 
-		atlas, err := db.Open(IndexDir(), BATCH_SIZE)
+		atlas, err := db.Open(CliCfg.GetIndexDir(), BATCH_SIZE)
 		if err != nil {
 			fmt.Println(err)
 			return
