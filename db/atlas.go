@@ -20,7 +20,7 @@ const (
 	ACCESS_TIME = "AccessTime"
 	TITLE = "Title"
 
-	DEFAULT_BATCH_SIZE = 1024
+	DEFAULT_BATCH_SIZE = 1000
 )
 
 // The bleve-type resolves to "_default", see bleve/mapping/index.IndexMappingImpl.determineType()

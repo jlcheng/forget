@@ -21,11 +21,16 @@ import (
 	"github.com/jlcheng/forget/trace"
 	"github.com/spf13/cobra"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 )
+
+import _ "net/http/pprof"
+
 
 var exloadArg = struct {
 	dataDir string
@@ -61,6 +66,10 @@ exloads will not recurse inside the data directory - only the top level is used.
 			fmt.Println("dataDir must be specified")
 			return
 		}
+		go func() {
+			log.Println(http.ListenAndServe("localhost:8080", nil))
+		}()
+
 		err := CreateAndPopulateIndex(exloadArg.dataDir, CliCfg.GetIndexDir(), exloadArg.force)
 		if err != nil {
 			trace.OnError(err)
@@ -101,30 +110,26 @@ func CreateAndPopulateIndex(dataDir, indexDir string, force bool) error {
 		}
 	}
 
-	// Create the indexDir
-	if err := os.Mkdir(indexDir, 0755); err != nil {
-		return err
-	}
-
-	atlas, err := db.Open(indexDir, 1024)
+	atlas, err := db.Open(indexDir, db.DEFAULT_BATCH_SIZE) // batch size of 1000
 	if err != nil {
 		return err
 	}
-	trace.Debug("index directory created, starting to index")
+	defer atlas.Close()
 
 	stime := time.Now()
 	helper := &indexHelper{atlas:atlas}
-	err = filepath.Walk(dataDir, helper.fileVisitor)
-	atlas.Close()
-	fmt.Printf("index stats: count: %v, total bytes: %v kb, elapsed time: %v\n",
-		helper.count, helper.totalSize/1024, time.Since(stime))
+
+	dataDirInfo, err := os.Stat(dataDir)
 	if err != nil {
 		return err
 	}
 
-	if err != nil {
+	if err = helper.indexFiles(dataDir, dataDirInfo); err != nil {
 		return err
 	}
+
+	fmt.Printf("index stats: count: %v, total bytes: %v kb, elapsed time: %v\n",
+		helper.count, helper.totalSize/1024, time.Since(stime))
 	return nil
 }
 
@@ -133,43 +138,47 @@ type indexHelper struct {
 	totalSize int64
 	count int
 }
-func (i *indexHelper) fileVisitor(path string, info os.FileInfo, err error) error {
-		// Send error to trace.Debug
+
+func (i *indexHelper) indexFiles(path string, info os.FileInfo) error {
+	// Do not index .git
+	if info.IsDir() && strings.HasSuffix(path, ".git") {
+		trace.Debug(fmt.Sprintf("skipping %v", path))
+		return filepath.SkipDir
+	}
+
+	// recurse into directory
+	if info.IsDir() {
+		cinfos, err := ioutil.ReadDir(path)
 		if err != nil {
-			trace.Debug(err)
-			return nil
-		}
-
-		// Do not index directories
-		if info.IsDir() {
-			return nil
-		}
-
-		// Do not index .git
-		if strings.HasSuffix(path, ".git") {
-			return filepath.SkipDir
-		}
-
-		// File name must contain a '.'
-		if strings.LastIndexByte(path, '.') < strings.LastIndexByte(path, '/') {
-			return nil
-		}
-
-		// Finally, index the heck out of this file
-		doc := db.Note{
-			ID: path,
-			Body: debugReadFile(path),
-			Title: info.Name(),
-			AccessTime: info.ModTime().Unix(),
-		}
-		i.atlas.Enqueue(doc)
-		if err != nil  {
 			return err
 		}
-		i.totalSize = i.totalSize + info.Size()
-		i.count = i.count + 1
-		trace.Debug("indexed", doc.ID)
+		for _, childInfo := range cinfos {
+			childPath := filepath.Join(path, childInfo.Name())
+			cerr := i.indexFiles(childPath, childInfo)
+			if cerr != nil && cerr != filepath.SkipDir {
+				return cerr // bail on legitimate errors
+			}
+		}
+	}
+
+	// File name must contain a '.'
+	if strings.LastIndexByte(path, '.') < strings.LastIndexByte(path, '/') {
 		return nil
+	}
+
+
+	// Finally, index the heck out of this file
+	doc := db.Note{
+		ID: path,
+		Body: debugReadFile(path),
+		Title: info.Name(),
+		AccessTime: info.ModTime().Unix(),
+	}
+	i.atlas.Enqueue(doc)
+	i.totalSize = i.totalSize + info.Size()
+	i.count = i.count + 1
+	trace.Debug("indexed", doc.ID)
+	return nil
 }
 
 

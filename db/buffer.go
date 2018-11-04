@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/jlcheng/forget/trace"
 	"sync"
@@ -17,7 +18,7 @@ type Batcher struct {
 // The bFunc callback will be invoked each time the buffer is filled or when the Batcher is stopped.
 func NewBatcher(size uint, index bleve.Index) *Batcher {
 	var b Batcher
-	b.buf   = make(chan Note, size+1) // slightly larger than buffer size, so that the channel does not block
+	b.buf   = make(chan Note)
 	b.flush = make(chan bool)
 	b.doneSync.Add(1)
 	go func() {
@@ -50,6 +51,7 @@ func NewBatcher(size uint, index bleve.Index) *Batcher {
 				doFlush = true
 			}
 			if doFlush {
+				trace.Debug(fmt.Sprintf("batch.flush. Size: %v", batch.Size()))
 				index.Batch(batch)
 				batch.Reset()
 				bcount = 0
