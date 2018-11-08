@@ -8,25 +8,31 @@ import (
 	"testing"
 )
 
-func TempIndex() (bleve.Index, error) {
+func MkTempIndex(t *testing.T) bleve.Index {
 	tmpDir := filepath.Join(os.TempDir(), "forget-test")
 	err := os.RemoveAll(tmpDir)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 	index, err := bleve.NewUsing(tmpDir, bleve.NewIndexMapping(), scorch.Name, scorch.Name, nil)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
-	return index, nil
+	return index
 }
 
-func CleanUpIndex(t *testing.T, index bleve.Index) {
+func CleanUpTempIndex(t *testing.T, index bleve.Index) {
 	if index == nil {
 		return
 	}
 	err := index.Close()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+	tmpDir := filepath.Join(os.TempDir(), "forget-test")
+	err = os.RemoveAll(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 }

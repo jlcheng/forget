@@ -8,11 +8,8 @@ import (
 )
 
 func TestNonFull(t *testing.T) {
-	index, err := testkit.TempIndex()
-	if err != nil {
-		t.Error(err)
-	}
-	defer testkit.CleanUpIndex(t, index)
+	index := testkit.MkTempIndex(t)
+	defer testkit.CleanUpTempIndex(t, index)
 
 	b := NewBatcher(10, index)
 	b.Send(Note{ID:"1"})
@@ -24,11 +21,8 @@ func TestNonFull(t *testing.T) {
 }
 
 func TestFull(t *testing.T) {
-	index, err := testkit.TempIndex()
-	if err != nil {
-		t.Error(err)
-	}
-	defer testkit.CleanUpIndex(t, index)
+	index := testkit.MkTempIndex(t)
+	defer testkit.CleanUpTempIndex(t, index)
 
 	size := 10
 	b := NewBatcher(uint(size), index)
@@ -43,11 +37,8 @@ func TestFull(t *testing.T) {
 }
 
 func TestLargeSet(t *testing.T) {
-	index, err := testkit.TempIndex()
-	if err != nil {
-		t.Error(err)
-	}
-	defer testkit.CleanUpIndex(t, index)
+	index := testkit.MkTempIndex(t)
+	defer testkit.CleanUpTempIndex(t, index)
 
 	size := 10000
 	b := NewBatcher(uint(size), index)
