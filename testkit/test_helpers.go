@@ -8,8 +8,24 @@ import (
 	"testing"
 )
 
+const (
+	TEST_TMP_IDX_DIR = "forget-test-index"
+)
+
+func DeleteTempIndexDir(t *testing.T) {
+	tmpDir := GetTempIndexDir()
+	err := os.RemoveAll(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func GetTempIndexDir() string {
+	return filepath.Join(os.TempDir(), TEST_TMP_IDX_DIR)
+}
+
 func MkTempIndex(t *testing.T) bleve.Index {
-	tmpDir := filepath.Join(os.TempDir(), "forget-test")
+	tmpDir := GetTempIndexDir()
 	err := os.RemoveAll(tmpDir)
 	if err != nil {
 		t.Fatal(err)
@@ -29,10 +45,9 @@ func CleanUpTempIndex(t *testing.T, index bleve.Index) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tmpDir := filepath.Join(os.TempDir(), "forget-test")
+	tmpDir := GetTempIndexDir()
 	err = os.RemoveAll(tmpDir)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 }
