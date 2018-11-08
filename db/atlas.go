@@ -48,10 +48,10 @@ type Atlas struct {
 	// Expected implementation is *bleve.indexImpl{}
 	index bleve.Index
 
-	batcher *Batcher
+	batcher *BBatcher
 }
 
-func Open(path string, size uint) (*Atlas, error) {
+func Open(path string, size int) (*Atlas, error) {
 	index, err := bleve.OpenUsing(path, map[string]interface{}{})
 	if err == nil {
 		return NewAtlas(index, size), nil
@@ -63,25 +63,24 @@ func Open(path string, size uint) (*Atlas, error) {
 	}
 	return NewAtlas(index, size), nil
 }
-func NewAtlas(index bleve.Index, size uint) *Atlas {
+func NewAtlas(index bleve.Index, size int) *Atlas {
 	return &Atlas{
 		index: index,
-		batcher: NewBatcher(size, index),
+		batcher: NewBBatcher(index, size),
 	}
 }
 
 func (s *Atlas) Close() error {
-	s.Flush()
-	s.batcher.Close()
+	s.Flush() // TODO: JCHENG is it good to ignore this error?
 	return s.index.Close()
 }
 
 func (s *Atlas) Enqueue(note Note) {
-	s.batcher.Send(note)
+	s.batcher.Index(note)
 }
 
-func (s *Atlas) Flush() {
-	s.batcher.Flush()
+func (s *Atlas) Flush() error {
+	return s.batcher.Flush()
 }
 
 func (s *Atlas) GetDocCount() (uint64, error) {

@@ -15,5 +15,9 @@ out/4gt:
 clean:
 	rm -rf out
 
+.PHONY: test
+test:
+	go test ./db/...
+
 install: all
 	mv out/4gt $(HOME)/bin
