@@ -93,7 +93,6 @@ func (s *Atlas) QueryString(qstr string) ([]Note, error) {
 	sr.SortBy([]string{ACCESS_TIME})
 	sr.Fields = []string{"*"}
 	sr.IncludeLocations = true
-	sr.Highlight = bleve.NewHighlight()
 	results, err := s.index.Search(sr)
 	if err != nil {
 		return nil, err
