@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// Verify the initialization an Atlas directory (atlas.Open)
 func TestAtlasOpen(t *testing.T) {
 	testkit.DeleteTempIndexDir(t)
 	tmpDir := testkit.GetTempIndexDir()
@@ -23,6 +24,7 @@ func TestAtlasOpen(t *testing.T) {
 	}
 }
 
+// Verify that we can add to Atlas and read back from it
 func TestAtlasRead(t *testing.T) {
 
 	testCases := []struct{
@@ -30,6 +32,7 @@ func TestAtlasRead(t *testing.T) {
 		Query string
 		Notes []Note
 	}{
+		// Happy path - exact match
 		{
 			GivenNotes: []Note{
 				{ID: "ID", Body: "Body"},
@@ -39,6 +42,7 @@ func TestAtlasRead(t *testing.T) {
 				{ID:"ID", Body:"Body"},
 			},
 		},
+		// Happy path - no match
 		{
 			GivenNotes: []Note{
 				{ID: "ID", Body: "booty"},
@@ -47,6 +51,7 @@ func TestAtlasRead(t *testing.T) {
 			Notes: []Note{
 			},
 		},
+		// Happy path - match on a single word
 		{
 			GivenNotes: []Note{
 				{ID: "ID", Body: "red fox jumps over the brown dog"},
@@ -54,6 +59,17 @@ func TestAtlasRead(t *testing.T) {
 			Query: "brown",
 			Notes: []Note{
 				{ID: "ID", Body: "red fox jumps over the brown dog"},
+			},
+		},
+		// Only some documents match
+		{
+			GivenNotes: []Note{
+				{ID: "ONE", Body: "red fox jumps over the brown dog"},
+				{ID: "TWO", Body: "booty"},
+			},
+			Query: "brown",
+			Notes: []Note{
+				{ID: "ONE", Body: "red fox jumps over the brown dog"},
 			},
 		},
 	}

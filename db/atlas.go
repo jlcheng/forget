@@ -47,8 +47,8 @@ func (s Note) PrettyString() string {
 type Atlas struct {
 	// Expected implementation is *bleve.indexImpl{}
 	index bleve.Index
-
-	batcher *BBatcher
+	batch *bleve.Batch // supports batching
+	size  int          // batch size
 }
 
 func Open(path string, size int) (*Atlas, error) {
@@ -66,21 +66,34 @@ func Open(path string, size int) (*Atlas, error) {
 func NewAtlas(index bleve.Index, size int) *Atlas {
 	return &Atlas{
 		index: index,
-		batcher: NewBBatcher(index, size),
+		batch: index.NewBatch(),
+		size: size,
 	}
 }
 
 func (s *Atlas) Close() error {
-	s.Flush() // TODO: JCHENG is it good to ignore this error?
+	_ = s.Flush() // TODO: JCHENG handle returned error
 	return s.index.Close()
 }
 
-func (s *Atlas) Enqueue(note Note) {
-	s.batcher.Index(note)
+func (s *Atlas) Enqueue(note Note) error {
+	err := s.batch.Index(note.ID, note)
+	if err != nil {
+		return err
+	}
+	if s.batch.Size() > s.size {
+		return s.Flush()
+	}
+	return nil
 }
 
 func (s *Atlas) Flush() error {
-	return s.batcher.Flush()
+	err := s.index.Batch(s.batch)
+	if err != nil {
+		return err
+	}
+	s.batch.Reset()
+	return nil
 }
 
 func (s *Atlas) GetDocCount() (uint64, error) {
