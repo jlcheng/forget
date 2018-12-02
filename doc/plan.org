@@ -6,27 +6,15 @@
 # C-c a t 2 r - show all DONE items 
 # Ctrl-Shift-Return - add new
 # C-c / t - show todos only
-* TODO Research "bleve zip" and "bleve scorch" commands
+* DONE Research "bleve zip" and "bleve scorch" commands
   - Note taken on [2018-10-14 Sun 11:51] \\
     Though I'm not sure if I totally care. I have many things to read and I don't see the purpose of fully understanding
     this if I don't have further troubles with scorch.
-  - Note taken on [2018-10-09 Tue 10:22] \\
-    as suggested by @mschoch on gitter.im
-* TODO Design: How to batch index documents?
-  index         // The index to create a batch and process it
-  batch         // The currently active batch
-                // - Attempts to send to the batcher should drop items on the floor after finish.
-                // - Receivers should stop reading from arrivals. Any theortical messages-in-fligt will be dropped.
-
-  size          // The size of a batch
-** Atlas Design
-index         // The bleve.Index
-
-// --- Reader --- //
-N/A
-
-// --- Writer --- //
-// consider filling up a channel with items, when it is full, send the channel's contents downstream for batch processing.
+* DONE Design: How to batch index documents?
+After watching the talk 
+Rethinking Classical Concurrency Patterns video from Bryan C. Mills
+I've concluded that I would avoid an async API at the 'library' level. In other words, deferring dealing with blocking
+to the UI.
 * TODO Have a plan for describing, indexing, and recalling words with multiple meanings
   - Note taken on [2018-10-14 Sun 07:42] \\
     As an example, the word 'terminal' has different meanings based on its context.
@@ -40,4 +28,3 @@ N/A
     terminal (title) => thing you're typing into (body)
     We'll need some other attribute to describe the idea of context; Or perhaps deduce
     context from the body.
-  
