@@ -38,5 +38,5 @@
   version = "0.7.0"
 
 [[constraint]]
-  name = "github.com/fsnotify/fsnotify"
-  version = "1.4.7"
+  name = "github.com/radovskyb/watcher"
+  version = "1.0.2"

@@ -214,6 +214,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:0665976cc6d8c2e60dafca32820b6b7eca70f37ded0bcccc103388e1c0d05c53"
+  name = "github.com/radovskyb/watcher"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6145e1439b9de93806925353403f91d2abbad8a5"
+  version = "v1.0.2"
+
+[[projects]]
   digest = "1:6a4a11ba764a56d2758899ec6f3848d24698d48442ebce85ee7a3f63284526cd"
   name = "github.com/spf13/afero"
   packages = [
@@ -337,6 +345,7 @@
     "github.com/blevesearch/bleve/search",
     "github.com/blevesearch/bleve/search/query",
     "github.com/mitchellh/go-homedir",
+    "github.com/radovskyb/watcher",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
   ]
