@@ -16,9 +16,19 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/jlcheng/forget/watcher"
 	"github.com/spf13/cobra"
+	"log"
+	"time"
+
+	rwatch "github.com/radovskyb/watcher"
 )
+
+var exwatchArg = struct{
+	dataDir string
+}{
+	"",
+}
 
 // exwatchCmd represents the exwatch command
 var exwatchCmd = &cobra.Command{
@@ -26,7 +36,19 @@ var exwatchCmd = &cobra.Command{
 	Short: "Watches the target directory for changes",
 	Long: `The exwatch command allows for protoyping of a file watcher feature`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("exwatch called")
+		fmt.Println("exwatch called with", exwatchArg.dataDir)
+
+		// Creates a radovskyb.Watcher. Starts listening to its events. Finally, start the Watcherr.
+		radwatcher := rwatch.New()
+		if err := radwatcher.AddRecursive(exwatchArg.dataDir); err != nil {
+			log.Fatalf("cannot watch %v: %v", exwatchArg, err)
+		}
+		stopCh := make(chan struct{})
+		go watcher.ReceiveWatchEvents(radwatcher, stopCh)
+		if err := radwatcher.Start(time.Millisecond * 100); err != nil {
+			log.Fatal("cannot start watcher", err)
+		}
+		<-stopCh
 	},
 }
 
@@ -42,4 +64,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// exwatchCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	exwatchCmd.PersistentFlags().StringVar(&exwatchArg.dataDir, "dataDir", "", "data directory")
 }
