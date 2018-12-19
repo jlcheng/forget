@@ -46,6 +46,7 @@ func init() {
 
 	viper.BindPFlag(cli.INDEX_DIR, rootCmd.PersistentFlags().Lookup(cli.INDEX_DIR))
 	viper.BindPFlag(cli.LOG_LEVEL, rootCmd.PersistentFlags().Lookup(cli.LOG_LEVEL))
+
 }
 
 // initConfig reads in config file and ENV variables if set.

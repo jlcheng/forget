@@ -9,6 +9,7 @@ import (
 
 const (
 	INDEX_DIR = "indexDir"
+	DATA_DIRS = "dataDirs"
 	LOG_LEVEL = "logLevel"
 )
 
@@ -21,6 +22,10 @@ type CLIConfig struct {
 
 func (c *CLIConfig) GetIndexDir() string {
 	return viper.GetString(INDEX_DIR)
+}
+
+func (c *CLIConfig) GetDataDirs() []string {
+	return viper.GetStringSlice(DATA_DIRS)
 }
 
 func (c *CLIConfig) SetTraceLevel() {
