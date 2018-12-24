@@ -117,6 +117,10 @@ func (s *Atlas) QueryString(qstr string) ([]Note, error) {
 	return notes, nil
 }
 
+func (s *Atlas) rawIndex() bleve.Index {
+	return s.index
+}
+
 func (s *Atlas) DumpAll() ([]Note, error) {
 	if dc, err := s.index.DocCount(); err != nil {
 		return nil, err
@@ -173,23 +177,6 @@ func toNote(doc *search.DocumentMatch) Note {
 			note.Title = v
 		}
 	}
-
-	if v, ok := doc.Locations[BODY]; ok {
-		for _, v1 := range v {
-			for _, vLoc := range v1 {
-				left := strings.LastIndex(note.Body[:vLoc.Start], "\n")
-				var right int
-				for pos, char := range note.Body[vLoc.End:] {
-					right = int(vLoc.End) + int(pos)
-					if char == '\n' {
-						break
-					}
-				}
-				fmt.Print(note.Body[left:right])
-			}
-		}
-	}
-
 	if doc.Fragments != nil {
 		note.Fragments = doc.Fragments
 	}
