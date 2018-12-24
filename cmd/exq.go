@@ -29,22 +29,14 @@ var exqCmd = &cobra.Command{
 		docCount, err := atlas.GetDocCount()
 		trace.Debug("atlas size:", docCount)
 		stime := time.Now()
-		notes, err := atlas.QueryString(strings.Join(args, " "))
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Printf("found %v notes in %v\n", len(notes), time.Since(stime))
-		eidx := len(notes)
+		atlasResponse := atlas.QueryForResponse(strings.Join(args, " "))
+		fmt.Printf("found %v notes in %v\n", len(atlasResponse.ResultEntries), time.Since(stime))
+		eidx := len(atlasResponse.ResultEntries)
 		if limit != 0 && eidx >= limit {
 			eidx = limit
 		}
-		for _, note := range notes[:eidx] {
-			if full {
-				fmt.Printf("%v:\n\033[96m%v\033[39;49m\n", note.Title, note.Fragments["Body"])
-			} else {
-				fmt.Println(note.ID)
-			}
+		for _, entry := range atlasResponse.ResultEntries {
+			fmt.Printf("%s: %s\n", entry.NoteID, entry.Line)
 		}
 	},
 }
