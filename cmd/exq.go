@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/trace"
+	"github.com/jlcheng/forget/txtio"
 	"strings"
 	"time"
 
@@ -35,8 +36,8 @@ var exqCmd = &cobra.Command{
 		if limit != 0 && eidx >= limit {
 			eidx = limit
 		}
-		for _, entry := range atlasResponse.ResultEntries {
-			fmt.Printf("%s: %s\n", entry.NoteID, entry.Line)
+		for _, entry := range atlasResponse.ResultEntries[:eidx] {
+			fmt.Println(txtio.AnsiFmt(entry))
 		}
 	},
 }
