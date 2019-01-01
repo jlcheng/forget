@@ -50,7 +50,7 @@ exloads will fail if the index directory is non-empty.
 			return
 		}
 		if len(dataDirs) == 0 {
-			fmt.Println("dataDir must be specified")
+			fmt.Println("dataDirs must be specified")
 			return
 		}
 		// TODO: 12/15/18 - Used for pprof debugging? Can remove?

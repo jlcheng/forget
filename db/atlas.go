@@ -87,6 +87,14 @@ func (s *Atlas) Enqueue(note Note) error {
 	return nil
 }
 
+func (s *Atlas) Remove(noteID string) error {
+	s.batch.Delete("")
+	if s.batch.Size() > s.size {
+		return s.Flush()
+	}
+	return nil
+}
+
 func (s *Atlas) Flush() error {
 	err := s.index.Batch(s.batch)
 	if err != nil {

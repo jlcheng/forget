@@ -16,9 +16,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/jlcheng/forget/cli"
+	"github.com/jlcheng/forget/db"
+	"github.com/jlcheng/forget/trace"
 	"github.com/jlcheng/forget/watcher"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"log"
+	"os"
 	"time"
 
 	rwatch "github.com/radovskyb/watcher"
@@ -36,15 +41,41 @@ var exwatchCmd = &cobra.Command{
 	Short: "Watches the target directory for changes",
 	Long: `The exwatch command allows for protoyping of a file watcher feature`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("exwatch called with", exwatchArg.dataDir)
+		CliCfg.SetTraceLevel()
 
-		// Creates a radovskyb.Watcher. Starts listening to its events. Finally, start the Watcherr.
-		radwatcher := rwatch.New()
-		if err := radwatcher.AddRecursive(exwatchArg.dataDir); err != nil {
-			log.Fatalf("cannot watch %v: %v", exwatchArg, err)
+		dataDirs := viper.GetStringSlice(cli.DATA_DIRS)
+		if len(dataDirs) == 0 {
+			log.Fatal("dataDirs must be specified")
+			return
 		}
+		fmt.Println("exwatch called with", dataDirs, CliCfg.GetIndexDir())
+
+		atlas, err := db.Open(CliCfg.GetIndexDir(), BATCH_SIZE)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer atlas.Close()
+		docCount, _:= atlas.GetDocCount()
+		trace.Debug("atlas size:", docCount)
+
+		// Creates a radovskyb.Watcher. Starts listening to its events. Finally, start the Watcher.
+		radwatcher := rwatch.New()
+		for _, dataDir := range CliCfg.GetDataDirs() {
+			_, err := os.Stat(dataDir)
+			if err != nil {
+				log.Fatal("cannot watch %v: %v:", dataDir, err)
+			}
+
+			if err := radwatcher.AddRecursive(dataDir); err != nil {
+				log.Fatalf("cannot watch %v: %v", exwatchArg, err)
+			}
+		}
+
+		wfacade := watcher.WatcherFacade{atlas}
 		stopCh := make(chan struct{})
-		go watcher.ReceiveWatchEvents(radwatcher, stopCh)
+		go wfacade.ReceiveWatchEvents(radwatcher, stopCh)
+
 		if err := radwatcher.Start(time.Millisecond * 100); err != nil {
 			log.Fatal("cannot start watcher", err)
 		}
@@ -54,15 +85,4 @@ var exwatchCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(exwatchCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// exwatchCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// exwatchCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	exwatchCmd.PersistentFlags().StringVar(&exwatchArg.dataDir, "dataDir", "", "data directory")
 }
