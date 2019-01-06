@@ -3,6 +3,7 @@ package testkit
 import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/index/scorch"
+	"github.com/blevesearch/bleve/mapping"
 	"os"
 	"path/filepath"
 	"testing"
@@ -50,4 +51,27 @@ func CleanUpTempIndex(t *testing.T, index bleve.Index) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+type TempIndexContext func(index bleve.Index, tmpDir string) error
+
+func DoInTempIndexContext(tiCtx TempIndexContext, indexMapping mapping.IndexMapping) error {
+	tmpDir := GetTempIndexDir()
+	err := os.RemoveAll(tmpDir)
+	if err != nil {
+		return err
+	}
+
+	index, err := bleve.NewUsing(tmpDir, indexMapping, scorch.Name, scorch.Name, nil)
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmpDir)
+	defer index.Close()
+
+	err = tiCtx(index, tmpDir)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -18,15 +18,17 @@
   revision = "7265e41f48f15fd61751e16da866af3c704bb3ab"
 
 [[projects]]
-  digest = "1:0a911d543a8c44cfe88bc8e56fcaef5aef8fecc7eed598faa334ed64923466c8"
+  digest = "1:473c002bb6f7616a09e8113a12a513627b0af483c6987e699979e40030f8d1d7"
   name = "github.com/blevesearch/bleve"
   packages = [
     ".",
     "analysis",
+    "analysis/analyzer/custom",
     "analysis/analyzer/standard",
     "analysis/datetime/flexible",
     "analysis/datetime/optional",
     "analysis/lang/en",
+    "analysis/token/length",
     "analysis/token/lowercase",
     "analysis/token/porter",
     "analysis/token/stop",
@@ -340,6 +342,11 @@
   analyzer-version = 1
   input-imports = [
     "github.com/blevesearch/bleve",
+    "github.com/blevesearch/bleve/analysis/analyzer/custom",
+    "github.com/blevesearch/bleve/analysis/lang/en",
+    "github.com/blevesearch/bleve/analysis/token/length",
+    "github.com/blevesearch/bleve/analysis/token/lowercase",
+    "github.com/blevesearch/bleve/analysis/tokenizer/unicode",
     "github.com/blevesearch/bleve/index/scorch",
     "github.com/blevesearch/bleve/mapping",
     "github.com/blevesearch/bleve/search",
