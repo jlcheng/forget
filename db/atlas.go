@@ -4,6 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/analysis/analyzer/custom"
+	"github.com/blevesearch/bleve/analysis/lang/en"
+	"github.com/blevesearch/bleve/analysis/token/length"
+	"github.com/blevesearch/bleve/analysis/token/lowercase"
+	"github.com/blevesearch/bleve/analysis/tokenizer/unicode"
 	"github.com/blevesearch/bleve/index/scorch"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/blevesearch/bleve/search"
@@ -57,7 +62,11 @@ func Open(path string, size int) (*Atlas, error) {
 		return NewAtlas(index, size), nil
 	}
 
-	index, err = bleve.NewUsing(path, NewIndexMapping(), scorch.Name, scorch.Name, nil)
+	indexMapping, err := NewIndexMapping()
+	if err != nil {
+		return nil, err
+	}
+	index, err = bleve.NewUsing(path, indexMapping, scorch.Name, scorch.Name, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -151,20 +160,46 @@ func (s *Atlas) DumpAll() ([]Note, error) {
 	return notes, nil
 }
 
-func NewIndexMapping() mapping.IndexMapping {
-	imap := bleve.NewIndexMapping()
+func NewIndexMapping() (mapping.IndexMapping, error) {
+	indexMapping := bleve.NewIndexMapping()
 
-	// needed because bleve will map atlas.Note to the "_default" bleve-type
-	main_dmap := bleve.NewDocumentMapping()
-	imap.AddDocumentMapping("_default", main_dmap)
+	noteMapping := bleve.NewDocumentMapping()
+	indexMapping.AddDocumentMapping("_default", noteMapping)
 
-	// configure the fields in atlas.Note, excepting doc.ID - necessary?
-	body_fmap := bleve.NewTextFieldMapping()
-	main_dmap.AddFieldMappingsAt(BODY, body_fmap)
-	accessTime_fmap := bleve.NewNumericFieldMapping()
-	main_dmap.AddFieldMappingsAt(ACCESS_TIME, accessTime_fmap)
+	const body_analyzer = "body_analyzer"
+	bodyMapping := bleve.NewTextFieldMapping()
+	noteMapping.AddFieldMappingsAt(BODY, bodyMapping)
+	bodyMapping.Analyzer = body_analyzer
 
-	return imap
+	accessTimeMapping := bleve.NewNumericFieldMapping()
+	noteMapping.AddFieldMappingsAt(ACCESS_TIME, accessTimeMapping)
+
+	const token_length_filter = "token_length_filter"
+	var err error
+	err = indexMapping.AddCustomTokenFilter(token_length_filter,
+		map[string]interface{}{
+			"type": length.Name,
+			"min":  2.0,
+			"max":  32.0,
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	err = indexMapping.AddCustomAnalyzer(body_analyzer, map[string]interface{}{
+		"type":      custom.Name,
+		"tokenizer": unicode.Name,
+		"token_filters": []interface{}{
+			lowercase.Name,
+			en.StopName,
+			token_length_filter,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return indexMapping, nil
 }
 
 func toNote(doc *search.DocumentMatch) Note {
