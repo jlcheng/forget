@@ -90,7 +90,7 @@ func (s *Atlas) Enqueue(note Note) error {
 	if err != nil {
 		return err
 	}
-	if s.batch.Size() > s.size {
+	if s.batch.Size() >= s.size {
 		return s.Flush()
 	}
 	return nil
@@ -98,13 +98,14 @@ func (s *Atlas) Enqueue(note Note) error {
 
 func (s *Atlas) Remove(noteID string) error {
 	s.batch.Delete("")
-	if s.batch.Size() > s.size {
+	if s.batch.Size() >= s.size {
 		return s.Flush()
 	}
 	return nil
 }
 
 func (s *Atlas) Flush() error {
+	trace.Debug(fmt.Sprintf("Flush() called with batch.Size of %d", s.batch.Size()))
 	err := s.index.Batch(s.batch)
 	if err != nil {
 		return err

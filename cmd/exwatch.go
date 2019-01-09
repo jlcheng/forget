@@ -64,11 +64,11 @@ var exwatchCmd = &cobra.Command{
 		for _, dataDir := range CliCfg.GetDataDirs() {
 			_, err := os.Stat(dataDir)
 			if err != nil {
-				log.Fatal("cannot watch %v: %v:", dataDir, err)
+				log.Fatalf("cannot watch %v: %v\n:", dataDir, err)
 			}
 
 			if err := radwatcher.AddRecursive(dataDir); err != nil {
-				log.Fatalf("cannot watch %v: %v", exwatchArg, err)
+				log.Fatalf("cannot watch %v: %v\n", exwatchArg, err)
 			}
 		}
 

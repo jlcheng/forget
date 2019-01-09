@@ -17,7 +17,7 @@ clean:
 
 .PHONY: test
 test:
-	go test ./db/...
+	go test ./db/... ./cmd/...
 
 install: all
 	mv out/4gt $(HOME)/bin

@@ -18,7 +18,7 @@
   revision = "7265e41f48f15fd61751e16da866af3c704bb3ab"
 
 [[projects]]
-  digest = "1:473c002bb6f7616a09e8113a12a513627b0af483c6987e699979e40030f8d1d7"
+  digest = "1:0d1975db8ab8140e2edddec4726e231c83e8247a9eca62a2f57be5498779e8b5"
   name = "github.com/blevesearch/bleve"
   packages = [
     ".",
@@ -30,6 +30,7 @@
     "analysis/lang/en",
     "analysis/token/length",
     "analysis/token/lowercase",
+    "analysis/token/ngram",
     "analysis/token/porter",
     "analysis/token/stop",
     "analysis/tokenizer/unicode",
@@ -346,6 +347,7 @@
     "github.com/blevesearch/bleve/analysis/lang/en",
     "github.com/blevesearch/bleve/analysis/token/length",
     "github.com/blevesearch/bleve/analysis/token/lowercase",
+    "github.com/blevesearch/bleve/analysis/token/ngram",
     "github.com/blevesearch/bleve/analysis/tokenizer/unicode",
     "github.com/blevesearch/bleve/index/scorch",
     "github.com/blevesearch/bleve/mapping",
