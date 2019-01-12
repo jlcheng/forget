@@ -3,13 +3,54 @@ package watcher
 import (
 	"fmt"
 	"github.com/jlcheng/forget/db"
+	"github.com/jlcheng/forget/rpc"
 	"github.com/jlcheng/forget/trace"
 	rwatch "github.com/radovskyb/watcher"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
+
+type WatcherFacade struct {
+	watcher *rwatch.Watcher
+}
+
+func NewWatcherFacade() WatcherFacade {
+	return WatcherFacade{
+		watcher: rwatch.New(),
+	}
+}
+
+func (wfacade *WatcherFacade) Listen(port int, indexDir string, dataDirs []string, duration time.Duration) error {
+	atlas, err := db.Open(indexDir, 1)
+	if err != nil {
+		return err
+	}
+	docCount, err := atlas.GetDocCount()
+	trace.Debug("atlas loc and size:", indexDir, docCount)
+
+	fmt.Printf("Starting rpc on port %d\n", port)
+	go rpc.StartRpcServer(atlas, port)
+
+	// Creates a radovskyb.Watcher. Starts listening to its events. Finally, start the Watcher.
+	for _, dataDir := range dataDirs {
+		if err := wfacade.watcher.AddRecursive(dataDir); err != nil {
+			log.Fatalf("cannot watch %v: %v\n", dataDir, err)
+		}
+	}
+
+	go ReceiveWatchEvents(atlas, wfacade.watcher)
+
+	return wfacade.watcher.Start(duration)
+}
+
+func (wfacade *WatcherFacade) Close() {
+	wfacade.watcher.Close()
+}
+
 
 // ReceiveWatchEvents will delegate relevant filesystem events to an db.Atlas instance.
 func ReceiveWatchEvents(atlas *db.Atlas, watcher *rwatch.Watcher) {

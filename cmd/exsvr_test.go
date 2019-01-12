@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/jlcheng/forget/rpc"
+	"github.com/jlcheng/forget/watcher"
 	"io/ioutil"
 	"os"
 	"path"
@@ -29,10 +30,10 @@ func TestRunExsvr(t *testing.T) {
 	}
 	defer os.RemoveAll(dataDir2)
 
-	closeCh := make(chan struct{})
-	defer close(closeCh)
-	go RunExsvr(RPC_PORT, indexDir, []string{dataDir1, dataDir2}, closeCh)
-	time.Sleep(time.Millisecond * 500)
+	runexsvr := watcher.NewWatcherFacade()
+	defer runexsvr.Close()
+    go runexsvr.Listen(RPC_PORT, indexDir, []string{dataDir1, dataDir2}, time.Millisecond * 10)
+	time.Sleep(time.Millisecond * 100)
 	f, err := os.Create(path.Join(dataDir2, "first.txt"))
 	if err != nil {
 		t.Error(err)
@@ -40,8 +41,7 @@ func TestRunExsvr(t *testing.T) {
 	defer f.Close()
 	f.WriteString("this is my testcase")
 	f.Close()
-	time.Sleep(time.Second * 1)
-
+	time.Sleep(time.Millisecond * 200)
 	response, err := rpc.Request("localhost", RPC_PORT, "testcase")
 	if expected := "found 1 note"; !strings.Contains(response, expected) {
 		t.Error("missing substring: ", expected)
