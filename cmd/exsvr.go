@@ -54,25 +54,22 @@ func RunExsvr(port int, indexDir string, dataDirs []string, closeCh chan struct{
 		}
 
 		if err := radwatcher.AddRecursive(dataDir); err != nil {
-			log.Fatalf("cannot watch %v: %v\n", exwatchArg, err)
+			log.Fatalf("cannot watch %v: %v\n", dataDir, err)
 		}
 	}
 
-	wfacade := watcher.WatcherFacade{atlas}
-	stopCh := make(chan struct{})
-	go wfacade.ReceiveWatchEvents(radwatcher, stopCh)
+	go watcher.ReceiveWatchEvents(atlas, radwatcher)
 
 	if err := radwatcher.Start(time.Millisecond * 100); err != nil {
 		log.Fatal("cannot start watcher", err)
 	}
-	go func() {
-		select {
-		case <-closeCh:
-			radwatcher.Close()
-		}
-	}()
 
-//	<-stopCh
+	// blocks until we receive a shutdown message
+	select {
+	case <-closeCh:
+		radwatcher.Close()
+	}
+
 	return nil
 
 }

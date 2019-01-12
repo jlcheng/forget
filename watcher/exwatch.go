@@ -11,29 +11,23 @@ import (
 	"strings"
 )
 
-type WatcherFacade struct {
-	Atlas *db.Atlas
-}
-
-// ReceiveWatchEvents will read events from thw watcher until the watcher is stopped. ReceiveWatchEvents will close
-// the supplied stopCh when it is done.
-func (wfacade *WatcherFacade) ReceiveWatchEvents(watcher *rwatch.Watcher, stopCh chan struct{}) {
+// ReceiveWatchEvents will delegate relevant filesystem events to an db.Atlas instance.
+func ReceiveWatchEvents(atlas *db.Atlas, watcher *rwatch.Watcher) {
 	stop := false
 	for !stop {
 		select {
 		case event := <-watcher.Event:
 			trace.Debug(event)
-			wfacade.onEvent(event)
+			onEvent(atlas, event)
 		case err := <-watcher.Error:
 			trace.Warn(err)
 		case <-watcher.Closed:
 			stop = true
 		}
 	}
-	close(stopCh)
 }
 
-func (wfacade *WatcherFacade) onEvent(event rwatch.Event) {
+func onEvent(atlas *db.Atlas, event rwatch.Event) {
 	if event.IsDir() {
 		return
 	}
@@ -64,7 +58,7 @@ func (wfacade *WatcherFacade) onEvent(event rwatch.Event) {
 	}
 
 	if event.Op == rwatch.Remove {
-		err := wfacade.Atlas.Remove(path)
+		err := atlas.Remove(path)
 		if err != nil {
 			trace.Warn("cannot remove: ", path, err)
 			return
@@ -92,7 +86,7 @@ func (wfacade *WatcherFacade) onEvent(event rwatch.Event) {
 		Title: event.FileInfo.Name(),
 		AccessTime: event.FileInfo.ModTime().Unix(),
 	}
-	wfacade.Atlas.Enqueue(note)
+	atlas.Enqueue(note)
 	trace.Debug("indexed file:", path)
 }
 
