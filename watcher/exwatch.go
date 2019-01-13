@@ -25,12 +25,14 @@ func NewWatcherFacade() WatcherFacade {
 }
 
 func (wfacade *WatcherFacade) Listen(port int, indexDir string, dataDirs []string, duration time.Duration) error {
+	trace.Debug(fmt.Sprintf("indexDir: %s", indexDir))
+	trace.Debug(fmt.Sprintf("dataDirs: %s", strings.Join(dataDirs, ", ")))
 	atlas, err := db.Open(indexDir, 1)
 	if err != nil {
 		return err
 	}
 	docCount, err := atlas.GetDocCount()
-	trace.Debug("atlas loc and size:", indexDir, docCount)
+	trace.Debug("atlas doc count:", docCount)
 
 	fmt.Printf("Starting rpc on port %d\n", port)
 	go rpc.StartRpcServer(atlas, port)

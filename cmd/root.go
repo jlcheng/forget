@@ -6,6 +6,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 )
 
@@ -35,18 +36,23 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&CliCfg.CfgFile, "config", "", "config file (default is $HOME/.forget.toml)")
+	pflags := rootCmd.PersistentFlags()
+	pflags.StringVar(&CliCfg.CfgFile, "config", "", "config file (default is $HOME/.forget.toml)")
 
-	// Our own custom flags
-	rootCmd.PersistentFlags().StringP("indexDir", "i", "", "path to the index directory")
-	rootCmd.PersistentFlags().StringP("logLevel", "L", "None", "log level: NONE, DEBUG, or WARN")
+	pflags.StringP(cli.INDEX_DIR, "i", "", "path to the index directory")
+	if err := viper.BindPFlag(cli.INDEX_DIR, rootCmd.PersistentFlags().Lookup(cli.INDEX_DIR)); err != nil {
+		log.Fatal(err)
+	}
 
-	viper.BindPFlag(cli.INDEX_DIR, rootCmd.PersistentFlags().Lookup(cli.INDEX_DIR))
-	viper.BindPFlag(cli.LOG_LEVEL, rootCmd.PersistentFlags().Lookup(cli.LOG_LEVEL))
+	pflags.StringP(cli.LOG_LEVEL, "L", "None", "log level: NONE, DEBUG, or WARN")
+	if err := viper.BindPFlag(cli.LOG_LEVEL, rootCmd.PersistentFlags().Lookup(cli.LOG_LEVEL)); err != nil {
+		log.Fatal(err)
+	}
 
+	pflags.StringSlice(cli.DATA_DIRS, make([]string,0,0), "data directories")
+	if err := viper.BindPFlag(cli.DATA_DIRS, rootCmd.PersistentFlags().Lookup(cli.DATA_DIRS)); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

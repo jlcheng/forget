@@ -16,8 +16,6 @@ const (
 
 type CLIConfig struct {
 	CfgFile string
-	IndexDir string
-	DataDirs []string
 }
 
 func (c *CLIConfig) GetIndexDir() string {

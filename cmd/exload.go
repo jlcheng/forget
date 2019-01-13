@@ -22,10 +22,8 @@ import _ "net/http/pprof"
 
 
 var exloadArg = struct {
-	dataDirList []string
 	force bool
 }{
-	[]string{},
 	false,
 }
 
@@ -67,11 +65,7 @@ exloads will fail if the index directory is non-empty.
 
 func init() {
 	rootCmd.AddCommand(exloadCmd)
-
 	exloadCmd.PersistentFlags().BoolVarP(&exloadArg.force, "force", "f", false, "forces index to run, even if indexDir already exists")
-	exloadCmd.PersistentFlags().StringArrayVar(&exloadArg.dataDirList, cli.DATA_DIRS, make([]string,0,0), "data directories")
-
-	viper.BindPFlag(cli.DATA_DIRS, exloadCmd.PersistentFlags().Lookup(cli.DATA_DIRS))
 }
 
 func CreateAndPopulateIndex(dataDirs []string, indexDir string, force bool) error {
