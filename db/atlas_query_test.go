@@ -135,69 +135,6 @@ func TestGetLineAround(t *testing.T) {
 	}
 }
 
-func TestMapDocumentMatch(t *testing.T) {
-	dm := &search.DocumentMatch{}
-	dm.Score = 12
-	dm.Fields = make(map[string]interface{})
-	dm.Fields["Body"] = TEST_NOTE_1
-	dm.Locations = make(map[string]search.TermLocationMap)
-	dm.Locations["Body"] = MockNoteOneTermLocationMap()
-
-	srLocations, ok := mapDocumentMatch("Body", dm)
-	if !ok {
-		t.Fatal("mapping failed")
-	}
-
-	if srLocations.NoteID != dm.ID {
-		t.Fatal("unexpected NoteID")
-	}
-	if srLocations.Body != dm.Fields["Body"] {
-		t.Fatal("unexpected Body")
-	}
-	expected := dm.Locations["Body"]
-	got := srLocations.TermLocationMap
-	if !reflect.DeepEqual(got, expected) {
-		t.Fatal("unexpected Locations['Body']")
-	}
-}
-
-func TestQueryForMatches(t *testing.T) {
-	testkit.DeleteTempIndexDir(t)
-	tmpDir := testkit.GetTempIndexDir()
-	atlas, err := Open(tmpDir, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-	note := Note{
-		ID:         "test_note_1",
-		Body:       TEST_NOTE_1,
-		Title:      "",
-		AccessTime: 0,
-	}
-	atlas.Enqueue(note)
-	atlas.Flush()
-	queryMatches, err := atlas.QueryForMatches("fox")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(queryMatches.MatchInfoMap) == 0 {
-		t.Fatal("unexpected size")
-	}
-}
-
-func TestQueryMatchNoteIDs(t *testing.T) {
-	qm := QueryMatches{}
-	qm.MatchInfoMap = make(map[string]*MatchInfo)
-	qm.MatchInfoMap["0003"] = nil
-	qm.MatchInfoMap["0001"] = nil
-	qm.MatchInfoMap["0002"] = nil
-
-	expected := []string{"0001", "0002", "0003"}
-	if got := qm.NoteIDs(); !reflect.DeepEqual(expected, got) {
-		t.Fatal("unexpected NoteIDs:", got)
-	}
-}
-
 func TestMapDocumentMatchToResultEntrySlice(t *testing.T) {
 	testkit.DeleteTempIndexDir(t)
 	tmpDir := testkit.GetTempIndexDir()

@@ -8,7 +8,6 @@ import (
 	"github.com/blevesearch/bleve/search"
 	"github.com/blevesearch/bleve/search/query"
 	"log"
-	"sort"
 	"strings"
 )
 
@@ -42,60 +41,6 @@ type AtlasResponse struct {
 	ResultEntries []ResultEntry
 }
 
-type MatchContext struct {
-	ContextLines []string  // The lines around the matched term
-	MatchLineIndex uint    // The index in ContextLines where matched term(s) is found. This value is usually the
-	                       // median of ContextLines, but for matches at the beginning and end of a document, this index
-	                       // will be different, e.g., a matched term in the first line.
-}
-
-type MatchInfo struct {
-	NoteID string             // The ID of the matched Note
-	Score float64             // The relevance of the matched Note
-	Contexts []*MatchContext  // Lines with matched terms and surrounding lines
-}
-
-// TODO: JCHENG estimate the typical size of this returned object. avg_line_length * 5 * avg_hits_per_doc * docs.
-type QueryMatches struct {
-	MatchInfoMap   map[string]*MatchInfo  // NoteID => *MatchInfo
-}
-
-
-// SRLocations - [S]earch [R]result Locations models where matched terms around found in a atlas.Note. It differs from
-// the bleve data model by assuming a flat document model.
-type SRLocations struct {
-	NoteID string
-	Body string
-	Score float64
-	TermLocationMap search.TermLocationMap
-}
-
-// QueryForMatches runs a query and returns a QueryMatches object
-func (s *Atlas) QueryForMatches(qstr string) (QueryMatches, error) {
-	queryMatches := QueryMatches{}
-
-	q := query.NewQueryStringQuery(qstr)
-	sr := bleve.NewSearchRequest(q)
-	sr.SortBy([]string{ACCESS_TIME})
-	sr.Fields = []string{"*"}
-	sr.IncludeLocations = true
-	searchResult, err := s.index.Search(sr)
-	if err != nil {
-		return queryMatches, err
-	}
-
-	queryMatches.MatchInfoMap = make(map[string]*MatchInfo)
-	for _, dm := range searchResult.Hits {
-		srLocations, ok := mapDocumentMatch("Body", dm)
-		if ok {
-			matchInfo := mapSRLocations(srLocations)
-			queryMatches.MatchInfoMap[dm.ID] = &matchInfo
-		}
-	}
-
-	return queryMatches, nil
-}
-
 func (s *Atlas) QueryForResponse(qstr string) AtlasResponse {
 	q := query.NewQueryStringQuery(qstr)
 	sr := bleve.NewSearchRequest(q)
@@ -121,37 +66,8 @@ func getLineAround(text string, start, end uint64) (uint64, string) {
 	return uint64(lineStart), line
 }
 
-// mapDocumentMatch maps a *DocumentMatch into a SRLocations. If the DocumentMatch object contains the named field
-// then the returned SRLocation holds lines from the named field and the boolean is true. If the DocubmentMatch object
-// does not contain the named field, then the SRLocation will be empty and the boolean will be false.
-func mapDocumentMatch(fieldName string, dm *search.DocumentMatch) (SRLocations, bool) {
-	var srLocations = SRLocations{
-		NoteID: dm.ID,
-		Score: dm.Score,
-	}
-
-	if body, ok := dm.Fields[fieldName]; !ok {
-		return SRLocations{}, false
-	} else {
-		if s, ok := body.(string); !ok {
-			srLocations.Body = fmt.Sprint(body)
-		} else {
-			srLocations.Body = s
- 		}
-	}
-
-	if termLocationMap, ok := dm.Locations[fieldName]; !ok {
-		return SRLocations{}, false
-	} else {
-		srLocations.TermLocationMap = termLocationMap
-	}
-
-	return srLocations, true
-}
-
-// Flattens the DocumentMatch's Term=>Location map into a collestction of matching lines. If, for some reason, we cannot
-// transform this DocumentMatch into valid ResultEntry objects, a empty []ResultEntry will be returned and an non-nil
-// error will be returned.
+// Flattens the DocumentMatch's Term=>Location map into a collection of matching lines. The error is non-nil if
+// mapping fails.
 func mapDocumentMatchToResultEntrySlice(fieldName string, dm *search.DocumentMatch) ([]ResultEntry, error) {
 	emptyResponse := make([]ResultEntry, 0, 0)
 	body, err := resolveBody(fieldName, dm)
@@ -240,50 +156,6 @@ func resolveBody(fieldName string, dm *search.DocumentMatch) (string, error) {
 	}
 	return fmt.Sprint(value), nil
 }
-
-func mapSRLocations(srLocations SRLocations) MatchInfo {
-	// For every matched term, copies its line into the MatchInfo.
-	//
-	// This method de-dupes lines, in case there are multiple matched terms on the same line.
-	var matchInfo MatchInfo
-	matchInfo.Contexts = make([]*MatchContext, 0)
-	// Transform TermLocationMap into line-oriented structure
-	lines := make(map[uint64]string)
-	for _, locations := range srLocations.TermLocationMap {
-		for _, location := range locations {
-			// lineAddr is NOT the line number; Rather, it is the distance between the start of the text and the
-			// first character of the line.
-			lineAddr, line := getLineAround(srLocations.Body, location.Start, location.End)
-			if _, ok := lines[lineAddr]; ok {
-				continue
-			}
-			lines[lineAddr] = line
-			matchContext := MatchContext{
-				ContextLines: []string {line},
-				MatchLineIndex: 0,
-			}
-			matchInfo.Contexts = append(matchInfo.Contexts, &matchContext)
-		}
-	}
-
-	// Copy simple attributes over
-	matchInfo.NoteID = srLocations.NoteID
-	matchInfo.Score = srLocations.Score
-
-
-	return matchInfo
-}
-
-/* == START: MatchQuery == */
-func (qm *QueryMatches) NoteIDs() []string {
-	var keys = make([]string, 0, len(qm.MatchInfoMap))
-	for k := range qm.MatchInfoMap {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
-/* == End: MatchQuery == */
 
 /* == START: PrettyPrinter == */
 func PPResultEntrySlice(resultEntries []ResultEntry) string {
