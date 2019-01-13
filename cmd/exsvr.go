@@ -16,7 +16,7 @@ var exsvrCmd = &cobra.Command{
 
 		runexsvr := watcher.NewWatcherFacade()
 		defer runexsvr.Close()
-		err := runexsvr.Listen(exsvrPort, CliCfg.GetIndexDir(), CliCfg.GetDataDirs(), time.Millisecond * 10)
+		err := runexsvr.Listen(exsvrPort, CliCfg.GetIndexDir(), CliCfg.GetDataDirs(), time.Second * time.Duration(exsvrDuration))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -24,7 +24,9 @@ var exsvrCmd = &cobra.Command{
 }
 
 var exsvrPort int
+var exsvrDuration int
 func init() {
 	rootCmd.AddCommand(exsvrCmd)
 	exsvrCmd.PersistentFlags().IntVarP(&exsvrPort, "port", "p", 8181, "rpc port")
+	exsvrCmd.PersistentFlags().IntVarP(&exsvrDuration, "duration", "t", 10, "seconds between polling fs for changes")
 }

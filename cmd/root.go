@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -53,6 +54,11 @@ func init() {
 	if err := viper.BindPFlag(cli.DATA_DIRS, rootCmd.PersistentFlags().Lookup(cli.DATA_DIRS)); err != nil {
 		log.Fatal(err)
 	}
+
+	pflags.Bool(cli.PPROF_ENABLED, false, "if specified, turn on pprof")
+	if err := viper.BindPFlag(cli.PPROF_ENABLED, rootCmd.PersistentFlags().Lookup(cli.PPROF_ENABLED)); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -82,5 +88,12 @@ func initConfig() {
 	}
 	if viper.ConfigFileUsed() != "" {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+
+	// turn on pprof if specified
+	if viper.GetBool(cli.PPROF_ENABLED) {
+		go func() {
+			log.Println(http.ListenAndServe("localhost:6060", nil))
+		}()
 	}
 }

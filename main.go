@@ -14,7 +14,10 @@
 
 package main
 
-import "github.com/jlcheng/forget/cmd"
+import (
+	"github.com/jlcheng/forget/cmd"
+)
+import _ "net/http/pprof"
 
 func main() {
 	cmd.Execute()
