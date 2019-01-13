@@ -10,11 +10,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"io/ioutil"
-	"log"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -51,11 +48,6 @@ exloads will fail if the index directory is non-empty.
 			fmt.Println("dataDirs must be specified")
 			return
 		}
-		// TODO: 12/15/18 - Used for pprof debugging? Can remove?
-		go func() {
-			log.Println(http.ListenAndServe("localhost:8080", nil))
-		}()
-
 		err := CreateAndPopulateIndex(viper.GetStringSlice(cli.DATA_DIRS), CliCfg.GetIndexDir(), exloadArg.force)
 		if err != nil {
 			trace.OnError(err)
@@ -69,7 +61,7 @@ func init() {
 }
 
 func CreateAndPopulateIndex(dataDirs []string, indexDir string, force bool) error {
-	trace.Debug(fmt.Sprintf("createAndPopulateIndex from (%v) to (%v)", CliCfg.GetDataDirs(), indexDir))
+	trace.Debug(fmt.Sprintf("createAndPopulateIndex from (%v) to (%v)",dataDirs, indexDir))
 
 	// If indexDir exists, delete it or return error
 	if f, err := os.Stat(indexDir); err == nil {
@@ -94,7 +86,7 @@ func CreateAndPopulateIndex(dataDirs []string, indexDir string, force bool) erro
 	stime := time.Now()
 	helper := &indexHelper{atlas:atlas}
 
-	for _, dataDir := range CliCfg.GetDataDirs() {
+	for _, dataDir := range dataDirs {
 		dataDirInfo, err := os.Stat(dataDir)
 		if err != nil {
 			return err
@@ -117,10 +109,8 @@ type indexHelper struct {
 }
 
 func (i *indexHelper) indexFiles(path string, info os.FileInfo) error {
-	// Do not index .git
-	if info.IsDir() && strings.HasSuffix(path, ".git") {
-		trace.Debug(fmt.Sprintf("skipping %v", path))
-		return filepath.SkipDir
+	if !db.FilterFile(path, info) {
+		return nil
 	}
 
 	// recurse into directory
@@ -137,12 +127,6 @@ func (i *indexHelper) indexFiles(path string, info os.FileInfo) error {
 			}
 		}
 	}
-
-	// File name must contain a '.'
-	if strings.LastIndexByte(path, '.') < strings.LastIndexByte(path, '/') {
-		return nil
-	}
-
 
 	// Finally, index the heck out of this file
 	doc := db.Note{

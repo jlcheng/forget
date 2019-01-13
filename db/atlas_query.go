@@ -158,10 +158,10 @@ func resolveBody(fieldName string, dm *search.DocumentMatch) (string, error) {
 }
 
 /* == START: PrettyPrinter == */
-func PPResultEntrySlice(resultEntries []ResultEntry) string {
+func (atlasResponse *AtlasResponse) PPResultEntrySlice() string {
 	var buf bytes.Buffer
 	buf.WriteString("[]ResultEntry:\n")
-	for idx, entry := range resultEntries {
+	for idx, entry := range atlasResponse.ResultEntries {
 		buf.WriteString(fmt.Sprintf("  entry[%d]:\n", idx))
 		buf.WriteString(fmt.Sprintf("    NoteID: %s\n", entry.NoteID))
 		buf.WriteString(fmt.Sprintf("    Addr: %d\n", entry.Addr))
