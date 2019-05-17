@@ -1,5 +1,5 @@
 // Perform indexing on specified directories
-package cmd
+package subcmd
 
 import (
 	"errors"

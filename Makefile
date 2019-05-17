@@ -9,9 +9,9 @@ all: test build
 $(GENERATED): trace/log.go
 	$(GOGEN) trace/log.go
 
-build: out/4gt
-out/4gt: $(GENERATED)
-	$(GOBUILD) -o out/4gt main.go
+build: out/4gtx
+out/4gtx: $(GENERATED)
+	$(GOBUILD) -o out/4gtx cmd/4gtx/main.go
 
 .PHONY: clean
 clean:
@@ -26,4 +26,4 @@ fmt:
 	gofmt -s -w ./
 
 install: test build
-	mv out/4gt $(HOME)/bin
+	mv out/4gtx $(HOME)/bin
