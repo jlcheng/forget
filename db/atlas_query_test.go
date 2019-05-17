@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search"
 	"github.com/blevesearch/bleve/search/query"
@@ -142,14 +143,24 @@ func TestMapDocumentMatchToResultEntrySlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	note := Note{
 		ID:         "test_note_1",
 		Body:       TEST_NOTE_2,
 		Title:      "",
 		AccessTime: 0,
 	}
-	atlas.Enqueue(note)
-	atlas.Flush()
+
+	err = atlas.Enqueue(note)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = atlas.Flush()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	index := atlas.rawIndex()
 	q := query.NewQueryStringQuery("brown")
 	sr := bleve.NewSearchRequest(q)
@@ -159,6 +170,7 @@ func TestMapDocumentMatchToResultEntrySlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if len(results.Hits) == 0 {
 		t.Fatal("search result empty")
 	}
@@ -174,6 +186,11 @@ func TestMapDocumentMatchToResultEntrySlice(t *testing.T) {
 		t.Fatal("unexpected error.", err)
 	}
 	if !reflect.DeepEqual(expected, got) {
-		t.Fatal("unexpected result entries.", got)
+		fmt.Println("Unexpected result entries")
+		fmt.Println("Expected:")
+		fmt.Println(expected)
+		fmt.Println("")
+		fmt.Println("Got:")
+		fmt.Println(got)
 	}
 }

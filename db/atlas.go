@@ -61,19 +61,18 @@ func Open(path string, size int) (*Atlas, error) {
 	if err == nil {
 		return NewAtlas(index, size), nil
 	}
-
 	switch err {
 	case bleve.ErrorIndexMetaCorrupt, bleve.ErrorUnknownIndexType, bleve.ErrorUnknownStorageType:
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "cannot open existing index")
 	}
 
 	indexMapping, err := NewIndexMapping()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	index, err = bleve.NewUsing(path, indexMapping, scorch.Name, scorch.Name, nil)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "cannot open new index")
 
 	}
 	return NewAtlas(index, size), nil
@@ -87,8 +86,15 @@ func NewAtlas(index bleve.Index, size int) *Atlas {
 }
 
 func (s *Atlas) Close() error {
-	_ = s.Flush() // TODO: JCHENG handle returned error
-	return s.index.Close()
+	err := s.Flush() // TODO: JCHENG handle returned error
+	if err != nil {
+		return err
+	}
+	err = s.index.Close()
+	if err != nil {
+		return errors.Wrap(err, "cannot close index")
+	}
+	return nil
 }
 
 func (s *Atlas) Enqueue(note Note) error {
@@ -116,7 +122,7 @@ func (s *Atlas) Flush() error {
 	err := s.index.Batch(s.batch)
 	if err != nil {
 		trace.Warn("Flush() failed")
-		return errors.WithStack(err)
+		return errors.Wrap(err, "flush failed")
 	}
 	s.batch.Reset()
 	return nil
@@ -134,7 +140,7 @@ func (s *Atlas) QueryString(qstr string) ([]Note, error) {
 	sr.IncludeLocations = true
 	results, err := s.index.Search(sr)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "search failed")
 	}
 	notes := make([]Note, len(results.Hits))
 	for idx := range notes {
@@ -149,7 +155,7 @@ func (s *Atlas) rawIndex() bleve.Index {
 
 func (s *Atlas) DumpAll() ([]Note, error) {
 	if dc, err := s.index.DocCount(); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "error in DocCount")
 	} else {
 		trace.Debug("docCount", dc)
 	}
@@ -158,7 +164,7 @@ func (s *Atlas) DumpAll() ([]Note, error) {
 	sr.Fields = []string{"*"}
 	results, err := s.index.Search(sr) // bleve/index_impl, bleve/search/collector/topn.Collect
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "search failed")
 	}
 	trace.Debug("hitsCount", len(results.Hits))
 
@@ -192,7 +198,7 @@ func NewIndexMapping() (mapping.IndexMapping, error) {
 			"max":  32.0,
 		})
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "cannot add custom token filter")
 	}
 
 	err = indexMapping.AddCustomAnalyzer(body_analyzer, map[string]interface{}{
@@ -205,7 +211,7 @@ func NewIndexMapping() (mapping.IndexMapping, error) {
 		},
 	})
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "cannot add custom analyzer")
 	}
 
 	return indexMapping, nil

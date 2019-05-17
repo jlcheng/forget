@@ -2,11 +2,11 @@ package db
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search"
 	"github.com/blevesearch/bleve/search/query"
+	"github.com/pkg/errors"
 	"log"
 	"strings"
 )
@@ -77,7 +77,7 @@ func mapDocumentMatchToResultEntrySlice(fieldName string, dm *search.DocumentMat
 	var termLocationMap search.TermLocationMap
 	var ok bool
 	if termLocationMap, ok = dm.Locations[fieldName]; !ok {
-		return emptyResponse, errors.New(fmt.Sprintf("field '%s' missing", fieldName))
+		return emptyResponse, errors.Errorf("field '%s' missing", fieldName)
 	}
 	lines := make(map[uint]ResultEntry)
 	for _, locations := range termLocationMap {
@@ -149,7 +149,7 @@ func resolveBody(fieldName string, dm *search.DocumentMatch) (string, error) {
 	var value interface{}
 	var ok bool
 	if value, ok = dm.Fields[fieldName]; !ok {
-		return "", errors.New(fmt.Sprintf("field '%s' missing", fieldName))
+		return "", errors.Errorf("field '%s' missing", fieldName)
 	}
 	if s, ok := value.(string); ok {
 		return s, nil

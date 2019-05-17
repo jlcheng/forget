@@ -5,7 +5,6 @@ import (
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/rpc"
 	"github.com/jlcheng/forget/trace"
-	"github.com/pkg/errors"
 	rwatch "github.com/radovskyb/watcher"
 	"io/ioutil"
 	"log"
@@ -29,11 +28,11 @@ func (wfacade *WatcherFacade) Listen(port int, indexDir string, dataDirs []strin
 	trace.Debug(fmt.Sprintf("dataDirs: %s", strings.Join(dataDirs, ", ")))
 	atlas, err := db.Open(indexDir, 1)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	docCount, err := atlas.GetDocCount()
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	trace.Debug("atlas doc count:", docCount)
 
