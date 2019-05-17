@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"github.com/jlcheng/forget/trace"
 	"github.com/jlcheng/forget/watcher"
 	"github.com/spf13/cobra"
-	"log"
+	"os"
 	"time"
 )
 
@@ -18,7 +19,8 @@ var exsvrCmd = &cobra.Command{
 		defer runexsvr.Close()
 		err := runexsvr.Listen(exsvrPort, CliCfg.GetIndexDir(), CliCfg.GetDataDirs(), time.Second * time.Duration(exsvrDuration))
 		if err != nil {
-			log.Fatal(err)
+			trace.PrintStackTrace(err)
+			os.Exit(1)
 		}
 	},
 }

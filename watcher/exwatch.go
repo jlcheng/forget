@@ -86,7 +86,7 @@ func onEvent(atlas *db.Atlas, event rwatch.Event) {
 		}
 	case rwatch.Create, rwatch.Write:
 		if !db.FilterFile(path, event.FileInfo) {
-			trace.Debug(fmt.Sprintf("no-index: [%v] %v", path, event))
+			trace.Debug(fmt.Sprintf("no-index: [%v] %v", path, event.Op))
 		} else {
 			note := db.Note{
 				ID:         path,
@@ -94,8 +94,12 @@ func onEvent(atlas *db.Atlas, event rwatch.Event) {
 				Title:      event.FileInfo.Name(),
 				AccessTime: event.FileInfo.ModTime().Unix(),
 			}
-			atlas.Enqueue(note)
-			trace.Debug("enqueued for indexing:", path)
+			err := atlas.Enqueue(note)
+			if err != nil {
+				trace.Warn(err)
+			} else {
+				trace.Debug("enqueued for indexing:", path)
+			}
 		}
 	case rwatch.Rename, rwatch.Move:
 		trace.Warn(fmt.Sprintf("not-implemented: %v, %v", event.Op, path))
@@ -109,7 +113,7 @@ func slurpFile(fileName string) string {
 	if err != nil {
 		return fmt.Sprintf("%v", err)
 	}
-	defer f.Close()
+	defer trace.TryClose(f)
 	s, err := ioutil.ReadAll(f)
 	if err != nil {
 		return fmt.Sprintf("%v", err)

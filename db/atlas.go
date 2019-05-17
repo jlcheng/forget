@@ -14,11 +14,10 @@ import (
 	"github.com/blevesearch/bleve/search"
 	"github.com/blevesearch/bleve/search/query"
 	"github.com/jlcheng/forget/trace"
+	"github.com/pkg/errors"
 	"math"
 	"strings"
 )
-
-//go:generate echo hello world
 
 const (
 	BODY = "Body"
@@ -28,7 +27,6 @@ const (
 	DEFAULT_BATCH_SIZE = 1000
 )
 
-// The bleve-type resolves to "_default", see bleve/mapping/index.IndexMappingImpl.determineType()
 type Note struct {
 	ID         string
 	Body       string
@@ -49,26 +47,32 @@ func (s Note) PrettyString() string {
 	return buf.String()
 }
 
+// Atlas is a lightweight interface over Bleve that batches indexing operations by default.
 type Atlas struct {
-	// Expected implementation is *bleve.indexImpl{}
-	index bleve.Index
+	index bleve.Index  // Expected implementation is *bleve.indexImpl{}
 	batch *bleve.Batch // supports batching
 	size  int          // batch size
 }
 
+// Open attempts to reuse an existing index or create a new index at the path
 func Open(path string, size int) (*Atlas, error) {
-	index, err := bleve.OpenUsing(path, map[string]interface{}{})
+	runtimeConfig := map[string]interface{}{}
+	index, err := bleve.OpenUsing(path, runtimeConfig)
 	if err == nil {
 		return NewAtlas(index, size), nil
+	}
+	if err != bleve.ErrorIndexPathDoesNotExist {
+		return nil, errors.WithStack(err)
 	}
 
 	indexMapping, err := NewIndexMapping()
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	index, err = bleve.NewUsing(path, indexMapping, scorch.Name, scorch.Name, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
+
 	}
 	return NewAtlas(index, size), nil
 }
@@ -88,7 +92,7 @@ func (s *Atlas) Close() error {
 func (s *Atlas) Enqueue(note Note) error {
 	err := s.batch.Index(note.ID, note)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	if s.batch.Size() >= s.size {
 		return s.Flush()
@@ -108,7 +112,7 @@ func (s *Atlas) Flush() error {
 	trace.Debug(fmt.Sprintf("Flush() called with batch.Size of %d", s.batch.Size()))
 	err := s.index.Batch(s.batch)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	s.batch.Reset()
 	return nil
@@ -126,7 +130,7 @@ func (s *Atlas) QueryString(qstr string) ([]Note, error) {
 	sr.IncludeLocations = true
 	results, err := s.index.Search(sr)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	notes := make([]Note, len(results.Hits))
 	for idx, _ := range notes {
@@ -141,7 +145,7 @@ func (s *Atlas) rawIndex() bleve.Index {
 
 func (s *Atlas) DumpAll() ([]Note, error) {
 	if dc, err := s.index.DocCount(); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	} else {
 		trace.Debug("docCount", dc)
 	}
@@ -150,7 +154,7 @@ func (s *Atlas) DumpAll() ([]Note, error) {
 	sr.Fields = []string{"*"}
 	results, err := s.index.Search(sr)  // bleve/index_impl, bleve/search/collector/topn.Collect
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	trace.Debug("hitsCount", len(results.Hits))
 
@@ -184,7 +188,7 @@ func NewIndexMapping() (mapping.IndexMapping, error) {
 			"max":  32.0,
 		})
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	err = indexMapping.AddCustomAnalyzer(body_analyzer, map[string]interface{}{
@@ -197,7 +201,7 @@ func NewIndexMapping() (mapping.IndexMapping, error) {
 		},
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return indexMapping, nil

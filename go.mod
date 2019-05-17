@@ -21,6 +21,7 @@ require (
 	github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae
 	github.com/pelletier/go-toml v1.2.0
 	github.com/philhofer/fwd v1.0.0
+	github.com/pkg/errors v0.8.1
 	github.com/radovskyb/watcher v1.0.2
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cast v1.2.0
