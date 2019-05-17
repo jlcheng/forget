@@ -45,7 +45,7 @@ var exqCmd = &cobra.Command{
 var full = false
 var limit = 0
 
-func init() {
+func InitExq() {
 	rootCmd.AddCommand(exqCmd)
 	rootCmd.PersistentFlags().BoolVar(&full, "full", false, "include full results")
 	rootCmd.PersistentFlags().IntVarP(&limit, "limit", "l", 0, "limit results")

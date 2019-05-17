@@ -54,7 +54,7 @@ exloads will fail if the index directory is non-empty.
 	},
 }
 
-func init() {
+func InitExload() {
 	rootCmd.AddCommand(exloadCmd)
 	exloadCmd.PersistentFlags().BoolVarP(&exloadArg.force, "force", "f", false, "forces index to run, even if indexDir already exists")
 }

@@ -18,11 +18,6 @@ var rootCmd = &cobra.Command{
 	Use:   "4gt",
 	Short: "A personal information management system",
 	Long:  `Forget is a CLI program to index and find information for the absent minded.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
-
-	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -34,7 +29,7 @@ func Execute() {
 	}
 }
 
-func init() {
+func InitCobra() {
 	cobra.OnInitialize(initConfig)
 
 	pflags := rootCmd.PersistentFlags()
@@ -59,6 +54,11 @@ func init() {
 	if err := viper.BindPFlag(cli.PPROF_ENABLED, rootCmd.PersistentFlags().Lookup(cli.PPROF_ENABLED)); err != nil {
 		log.Fatal(err)
 	}
+	InitExdump()
+	InitExload()
+	InitExqc()
+	InitExq()
+	InitExsvr()
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -38,7 +38,7 @@ var exqcCmd = &cobra.Command{
 var exqcPort int
 var exqcHost string
 
-func init() {
+func InitExqc() {
 	rootCmd.AddCommand(exqcCmd)
 	exqcCmd.PersistentFlags().IntVarP(&exqcPort, "port", "p", 8181, "rpc port")
 	exqcCmd.PersistentFlags().StringVarP(&exqcHost, "host", "H", "localhost", "rpc host")

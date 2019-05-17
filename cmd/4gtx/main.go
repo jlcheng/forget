@@ -6,5 +6,6 @@ import (
 import _ "net/http/pprof"
 
 func main() {
+	subcmd.InitCobra()
 	subcmd.Execute()
 }

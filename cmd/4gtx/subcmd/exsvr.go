@@ -28,7 +28,7 @@ var exsvrCmd = &cobra.Command{
 var exsvrPort int
 var exsvrDuration int
 
-func init() {
+func InitExsvr() {
 	rootCmd.AddCommand(exsvrCmd)
 	exsvrCmd.PersistentFlags().IntVarP(&exsvrPort, "port", "p", 8181, "rpc port")
 	exsvrCmd.PersistentFlags().IntVarP(&exsvrDuration, "duration", "t", 10, "seconds between polling fs for changes")
