@@ -15,6 +15,7 @@ var exqcCmd = &cobra.Command{
 	Short: "Client",
 	Long:  `Runs 4gt exq network client`,
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("This command is deprecated. Use `4gt` instead")
 		CliCfg.SetTraceLevel()
 
 		qterms := make([]string, len(args))
