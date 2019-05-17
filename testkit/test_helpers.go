@@ -4,6 +4,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/index/scorch"
 	"github.com/blevesearch/bleve/mapping"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -66,12 +67,18 @@ func DoInTempIndexContext(tiCtx TempIndexContext, indexMapping mapping.IndexMapp
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tmpDir)
-	defer index.Close()
+	defer StopOnError(os.RemoveAll(tmpDir))
+	defer StopOnError(index.Close())
 
 	err = tiCtx(index, tmpDir)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func StopOnError(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
