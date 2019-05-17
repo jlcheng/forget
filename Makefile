@@ -1,14 +1,16 @@
 GOBUILD=go build
 GOGEN=go generate
 
-all: generate build
+GENERATED=trace/loglevel_string.go
 
-generate: trace/loglevel_string.go
-trace/loglevel_string.go:
+.PHONY: all
+all: test build
+
+$(GENERATED): trace/log.go
 	$(GOGEN) trace/log.go
 
 build: out/4gt
-out/4gt:
+out/4gt: $(GENERATED)
 	$(GOBUILD) -o out/4gt main.go
 
 .PHONY: clean
@@ -16,8 +18,12 @@ clean:
 	rm -rf out
 
 .PHONY: test
-test:
+test: $(GENERATED)
 	go test ./db/... ./cmd/...
 
-install: all
+.PHONY: fmt
+fmt:
+	gofmt -s -w ./
+
+install: test build
 	mv out/4gt $(HOME)/bin
