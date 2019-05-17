@@ -59,7 +59,6 @@ func ReceiveWatchEvents(atlas *db.Atlas, watcher *rwatch.Watcher) {
 	for !stop {
 		select {
 		case event := <-watcher.Event:
-			trace.Debug(event)
 			onEvent(atlas, event)
 		case err := <-watcher.Error:
 			trace.Warn(err)
@@ -77,31 +76,31 @@ func onEvent(atlas *db.Atlas, event rwatch.Event) {
 
 	switch event.Op {
 	case rwatch.Chmod:
-		return
+		trace.Debug(event)
 	case rwatch.Remove:
 		err := atlas.Remove(path)
 		if err != nil {
 			trace.Warn("cannot remove: ", path, err)
-			return
+		} else {
+			trace.Debug("removed note: ", path)
 		}
-		trace.Debug("removed note: ", path)
-		return
 	case rwatch.Create, rwatch.Write:
 		if !db.FilterFile(path, event.FileInfo) {
-			return
+			trace.Debug(fmt.Sprintf("no-index: [%v] %v", path, event))
+		} else {
+			note := db.Note{
+				ID:         path,
+				Body:       slurpFile(path),
+				Title:      event.FileInfo.Name(),
+				AccessTime: event.FileInfo.ModTime().Unix(),
+			}
+			atlas.Enqueue(note)
+			trace.Debug("enqueued for indexing:", path)
 		}
-
-		note := db.Note{
-			ID: path,
-			Body: slurpFile(path),
-			Title: event.FileInfo.Name(),
-			AccessTime: event.FileInfo.ModTime().Unix(),
-		}
-		atlas.Enqueue(note)
-		trace.Debug("indexed file:", path)
-		return
 	case rwatch.Rename, rwatch.Move:
-		trace.Warn(fmt.Sprintf("not-implemented %s, %s", event.Op, path))
+		trace.Warn(fmt.Sprintf("not-implemented: %v, %v", event.Op, path))
+	default:
+		trace.Warn(fmt.Sprintf("not-implemented: %v", event))
 	}
 }
 
