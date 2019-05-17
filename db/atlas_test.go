@@ -27,10 +27,10 @@ func TestAtlasOpen(t *testing.T) {
 // Verify that we can add to Atlas and read back from it
 func TestAtlasRead(t *testing.T) {
 
-	testCases := []struct{
+	testCases := []struct {
 		GivenNotes []Note
-		Query string
-		Notes []Note
+		Query      string
+		Notes      []Note
 	}{
 		// Happy path - exact match
 		{
@@ -39,7 +39,7 @@ func TestAtlasRead(t *testing.T) {
 			},
 			Query: "Body",
 			Notes: []Note{
-				{ID:"ID", Body:"Body"},
+				{ID: "ID", Body: "Body"},
 			},
 		},
 		// Happy path - no match
@@ -48,8 +48,7 @@ func TestAtlasRead(t *testing.T) {
 				{ID: "ID", Body: "booty"},
 			},
 			Query: "Body",
-			Notes: []Note{
-			},
+			Notes: []Note{},
 		},
 		// Happy path - match on a single word
 		{

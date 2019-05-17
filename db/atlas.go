@@ -20,9 +20,9 @@ import (
 )
 
 const (
-	BODY = "Body"
+	BODY        = "Body"
 	ACCESS_TIME = "AccessTime"
-	TITLE = "Title"
+	TITLE       = "Title"
 
 	DEFAULT_BATCH_SIZE = 1000
 )
@@ -30,9 +30,9 @@ const (
 type Note struct {
 	ID         string
 	Body       string
-	Title      string                   // some short title of this note
-	Fragments  search.FieldFragmentMap  // only used for query results, show a snippet of text around found terms
-	AccessTime int64                    // time.Unix(), see NewIndexMapping():accessTime_fmap for FieldMapping
+	Title      string                  // some short title of this note
+	Fragments  search.FieldFragmentMap // only used for query results, show a snippet of text around found terms
+	AccessTime int64                   // time.Unix(), see NewIndexMapping():accessTime_fmap for FieldMapping
 }
 
 func (s Note) PrettyString() string {
@@ -61,7 +61,9 @@ func Open(path string, size int) (*Atlas, error) {
 	if err == nil {
 		return NewAtlas(index, size), nil
 	}
-	if err != bleve.ErrorIndexPathDoesNotExist {
+
+	switch err {
+	case bleve.ErrorIndexMetaCorrupt, bleve.ErrorUnknownIndexType, bleve.ErrorUnknownStorageType:
 		return nil, errors.WithStack(err)
 	}
 
@@ -80,7 +82,7 @@ func NewAtlas(index bleve.Index, size int) *Atlas {
 	return &Atlas{
 		index: index,
 		batch: index.NewBatch(),
-		size: size,
+		size:  size,
 	}
 }
 
@@ -90,6 +92,7 @@ func (s *Atlas) Close() error {
 }
 
 func (s *Atlas) Enqueue(note Note) error {
+	trace.Debug(fmt.Sprintf("Enqueue called for %v", note.Title))
 	err := s.batch.Index(note.ID, note)
 	if err != nil {
 		return errors.WithStack(err)
@@ -112,6 +115,7 @@ func (s *Atlas) Flush() error {
 	trace.Debug(fmt.Sprintf("Flush() called with batch.Size of %d", s.batch.Size()))
 	err := s.index.Batch(s.batch)
 	if err != nil {
+		trace.Warn("Flush() failed")
 		return errors.WithStack(err)
 	}
 	s.batch.Reset()
@@ -133,7 +137,7 @@ func (s *Atlas) QueryString(qstr string) ([]Note, error) {
 		return nil, errors.WithStack(err)
 	}
 	notes := make([]Note, len(results.Hits))
-	for idx, _ := range notes {
+	for idx := range notes {
 		notes[idx] = toNote(results.Hits[idx])
 	}
 	return notes, nil
@@ -152,14 +156,14 @@ func (s *Atlas) DumpAll() ([]Note, error) {
 
 	sr := bleve.NewSearchRequest(query.NewMatchAllQuery())
 	sr.Fields = []string{"*"}
-	results, err := s.index.Search(sr)  // bleve/index_impl, bleve/search/collector/topn.Collect
+	results, err := s.index.Search(sr) // bleve/index_impl, bleve/search/collector/topn.Collect
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	trace.Debug("hitsCount", len(results.Hits))
 
 	notes := make([]Note, len(results.Hits))
-	for idx, _ := range notes {
+	for idx := range notes {
 		notes[idx] = toNote(results.Hits[idx])
 	}
 	return notes, nil

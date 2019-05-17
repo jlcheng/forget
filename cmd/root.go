@@ -17,7 +17,7 @@ var CliCfg = cli.CLIConfig{}
 var rootCmd = &cobra.Command{
 	Use:   "4gt",
 	Short: "A personal information management system",
-	Long: `Forget is a CLI program to index and find information for the absent minded.`,
+	Long:  `Forget is a CLI program to index and find information for the absent minded.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
@@ -50,7 +50,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	pflags.StringSlice(cli.DATA_DIRS, make([]string,0,0), "data directories")
+	pflags.StringSlice(cli.DATA_DIRS, make([]string, 0, 0), "data directories")
 	if err := viper.BindPFlag(cli.DATA_DIRS, rootCmd.PersistentFlags().Lookup(cli.DATA_DIRS)); err != nil {
 		log.Fatal(err)
 	}

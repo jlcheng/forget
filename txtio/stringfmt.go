@@ -13,7 +13,7 @@ func AnsiFmt(entry db.ResultEntry) string {
 
 	// Writes out the colorized file name, followed by the line based on starting positions of Spans
 	var buf bytes.Buffer
-	progress := uint(0)  // Track amount of line already written
+	progress := uint(0) // Track amount of line already written
 
 	buf.WriteString(FCOLOR)
 	buf.WriteString(entry.NoteID)

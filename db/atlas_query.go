@@ -13,7 +13,7 @@ import (
 
 // A query to Atlas returns an AtlasResponse, which is a collection of ResultEntry objects. AtlasResponse has the rough
 // shape of:
-// 
+//
 //   AtlasResponse:
 //   * ResultEntries // []ResultEntry
 //     - NoteID
@@ -27,14 +27,14 @@ import (
 
 type Span struct {
 	Start uint
-	End uint
+	End   uint
 }
 
 type ResultEntry struct {
 	NoteID string
-	Addr uint
-	Line string
-	Spans []Span
+	Addr   uint
+	Line   string
+	Spans  []Span
 }
 
 type AtlasResponse struct {
@@ -107,15 +107,15 @@ func mapDocumentMatchToResultEntrySlice(fieldName string, dm *search.DocumentMat
 					}
 				}
 				if !hasSpan {
-					entry.Spans = append(entry.Spans, Span{Start:tmpSpanStart, End:tmpSpanEnd})
+					entry.Spans = append(entry.Spans, Span{Start: tmpSpanStart, End: tmpSpanEnd})
 				}
 			} else {
 				// Creates NewEntry with NoteID, Addr, Line, and the Span represented by this `loc`
 				entry = ResultEntry{
 					NoteID: dm.ID,
-					Addr: tmpLineAddr,
-					Line: body[tmpLineAddr:tmpLineEnd],
-					Spans: []Span{{Start:tmpSpanStart, End:tmpSpanEnd}},
+					Addr:   tmpLineAddr,
+					Line:   body[tmpLineAddr:tmpLineEnd],
+					Spans:  []Span{{Start: tmpSpanStart, End: tmpSpanEnd}},
 				}
 			}
 			lines[tmpLineAddr] = entry
@@ -129,14 +129,14 @@ func mapDocumentMatchToResultEntrySlice(fieldName string, dm *search.DocumentMat
 	return response, nil
 }
 
-func mapSearchResult(fieldName string, searchResult *bleve.SearchResult) (AtlasResponse) {
+func mapSearchResult(fieldName string, searchResult *bleve.SearchResult) AtlasResponse {
 	var ar AtlasResponse
 	ar.ResultEntries = make([]ResultEntry, 0)
 	for _, dm := range searchResult.Hits {
 		resultEntries, err := mapDocumentMatchToResultEntrySlice(fieldName, dm)
 		if err != nil {
 			log.Println("cannot map DocumentMap, skipping", dm.ID, err)
-			continue;
+			continue
 		}
 		for _, entry := range resultEntries {
 			ar.ResultEntries = append(ar.ResultEntries, entry)
@@ -171,4 +171,5 @@ func (atlasResponse *AtlasResponse) PPResultEntrySlice() string {
 	buf.WriteString("\n")
 	return buf.String()
 }
+
 /* == END: PrettyPrinter == */

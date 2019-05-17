@@ -11,13 +11,13 @@ import (
 var exsvrCmd = &cobra.Command{
 	Use:   "exsvr",
 	Short: "Server",
-	Long: `Runs 4gt server`,
+	Long:  `Runs 4gt server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		CliCfg.SetTraceLevel()
 
 		runexsvr := watcher.NewWatcherFacade()
 		defer runexsvr.Close()
-		err := runexsvr.Listen(exsvrPort, CliCfg.GetIndexDir(), CliCfg.GetDataDirs(), time.Second * time.Duration(exsvrDuration))
+		err := runexsvr.Listen(exsvrPort, CliCfg.GetIndexDir(), CliCfg.GetDataDirs(), time.Second*time.Duration(exsvrDuration))
 		if err != nil {
 			trace.PrintStackTrace(err)
 			os.Exit(1)
@@ -27,6 +27,7 @@ var exsvrCmd = &cobra.Command{
 
 var exsvrPort int
 var exsvrDuration int
+
 func init() {
 	rootCmd.AddCommand(exsvrCmd)
 	exsvrCmd.PersistentFlags().IntVarP(&exsvrPort, "port", "p", 8181, "rpc port")

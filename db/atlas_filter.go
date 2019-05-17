@@ -9,16 +9,15 @@ import (
 // FilterFile returns true for each path that is eligible to be indexed
 func FilterFile(path string, info os.FileInfo) bool {
 	// Do not index files under .git
-	for tmpPath := path;
-		tmpPath != "." && tmpPath != string(filepath.Separator);  // invariant
-	    tmpPath = filepath.Dir(tmpPath) {
+	for tmpPath := path; tmpPath != "." && tmpPath != string(filepath.Separator); // invariant
+	tmpPath = filepath.Dir(tmpPath) {
 		if strings.HasSuffix(tmpPath, ".git") {
 			return false
 		}
 	}
 
 	// File name must contain a '.'
-	if (!info.IsDir() && strings.LastIndexByte(info.Name(), '.') == -1) {
+	if !info.IsDir() && strings.LastIndexByte(info.Name(), '.') == -1 {
 		return false
 	}
 

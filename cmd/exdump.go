@@ -56,6 +56,7 @@ func init() {
 }
 
 type IDHandler func(param ...interface{}) error
+
 // IterateDocuments
 func IterateDocuments(atlas *db.Atlas, foo IDHandler) error {
 	trace.Debug("IterateDocuments")
@@ -71,4 +72,3 @@ func IterateDocuments(atlas *db.Atlas, foo IDHandler) error {
 	}
 	return nil
 }
-

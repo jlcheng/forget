@@ -5,11 +5,13 @@ import "fmt"
 //go:generate stringer -type LogLevel
 
 type LogLevel int
+
 const (
 	LOG_NONE LogLevel = iota
 	LOG_WARN
 	LOG_DEBUG
 )
+
 var Level = LOG_NONE
 
 func Debug(args ...interface{}) {

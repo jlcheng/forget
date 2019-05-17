@@ -6,14 +6,12 @@ import (
 	"strings"
 )
 
-
 const (
-	INDEX_DIR = "indexDir"
-	DATA_DIRS = "dataDirs"
-	LOG_LEVEL = "logLevel"
+	INDEX_DIR     = "indexDir"
+	DATA_DIRS     = "dataDirs"
+	LOG_LEVEL     = "logLevel"
 	PPROF_ENABLED = "pprof"
 )
-
 
 type CLIConfig struct {
 	CfgFile string

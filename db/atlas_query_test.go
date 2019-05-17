@@ -51,9 +51,9 @@ func MockNoteOneTermLocationMap() search.TermLocationMap {
 	termLocationMap := search.TermLocationMap{}
 	termLocationMap["brown"] = search.Locations{}
 	locs := termLocationMap["brown"]
-	locs = append(locs, &search.Location{Start:4, End:9, Pos:2})
-	locs = append(locs, &search.Location{Start:40, End:45, Pos:10})
-	locs = append(locs, &search.Location{Start:77, End:82, Pos:18})
+	locs = append(locs, &search.Location{Start: 4, End: 9, Pos: 2})
+	locs = append(locs, &search.Location{Start: 40, End: 45, Pos: 10})
+	locs = append(locs, &search.Location{Start: 77, End: 82, Pos: 18})
 	termLocationMap["brown"] = locs
 	return termLocationMap
 }
@@ -164,10 +164,10 @@ func TestMapDocumentMatchToResultEntrySlice(t *testing.T) {
 	}
 	dm := results.Hits[0]
 
-	expected := []ResultEntry {
-		{NoteID: "test_note_1", Line: "the brown dog jumped over the red fox", Addr: 0, Spans:[]Span {{4, 9}}},
-		{NoteID: "test_note_1", Line: "a brown bird flew over brown-red fox", Addr: 38, Spans:[]Span {{2, 7}, {23, 28}}},
-		{NoteID: "test_note_1", Line: "the brown chicken played", Addr: 75, Spans:[]Span {{4, 9}}},
+	expected := []ResultEntry{
+		{NoteID: "test_note_1", Line: "the brown dog jumped over the red fox", Addr: 0, Spans: []Span{{4, 9}}},
+		{NoteID: "test_note_1", Line: "a brown bird flew over brown-red fox", Addr: 38, Spans: []Span{{2, 7}, {23, 28}}},
+		{NoteID: "test_note_1", Line: "the brown chicken played", Addr: 75, Spans: []Span{{4, 9}}},
 	}
 	got, err := mapDocumentMatchToResultEntrySlice("Body", dm)
 	if err != nil {

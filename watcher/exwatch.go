@@ -5,6 +5,7 @@ import (
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/rpc"
 	"github.com/jlcheng/forget/trace"
+	"github.com/pkg/errors"
 	rwatch "github.com/radovskyb/watcher"
 	"io/ioutil"
 	"log"
@@ -28,9 +29,12 @@ func (wfacade *WatcherFacade) Listen(port int, indexDir string, dataDirs []strin
 	trace.Debug(fmt.Sprintf("dataDirs: %s", strings.Join(dataDirs, ", ")))
 	atlas, err := db.Open(indexDir, 1)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	docCount, err := atlas.GetDocCount()
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	trace.Debug("atlas doc count:", docCount)
 
 	fmt.Printf("Starting rpc on port %d\n", port)
@@ -51,7 +55,6 @@ func (wfacade *WatcherFacade) Listen(port int, indexDir string, dataDirs []strin
 func (wfacade *WatcherFacade) Close() {
 	wfacade.watcher.Close()
 }
-
 
 // ReceiveWatchEvents will delegate relevant filesystem events to an db.Atlas instance.
 func ReceiveWatchEvents(atlas *db.Atlas, watcher *rwatch.Watcher) {
@@ -97,8 +100,6 @@ func onEvent(atlas *db.Atlas, event rwatch.Event) {
 			err := atlas.Enqueue(note)
 			if err != nil {
 				trace.Warn(err)
-			} else {
-				trace.Debug("enqueued for indexing:", path)
 			}
 		}
 	case rwatch.Rename, rwatch.Move:

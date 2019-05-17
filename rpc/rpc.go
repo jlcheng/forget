@@ -1,36 +1,32 @@
 package rpc
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/jlcheng/forget/db"
-	"github.com/jlcheng/forget/txtio"
 	"log"
 	"net"
 	"net/rpc"
-	"time"
 )
 
+// ForgetService is an adapter around the Atlas instance which conforms to the net/rpc API.
 type ForgetService struct {
 	Atlas *db.Atlas
 }
 
-func (svc *ForgetService) Query(qstr string, reply *string) error {
-	stime := time.Now()
+// Query exports atlas.QueryForResponse for net/rpc.
+func (svc *ForgetService) Query(qstr string, reply *db.AtlasResponse) error {
 	atlasResponse := svc.Atlas.QueryForResponse(qstr)
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("found %v notes in %v\n", len(atlasResponse.ResultEntries), time.Since(stime)))
-	for _, entry := range atlasResponse.ResultEntries {
-		buf.WriteString(fmt.Sprintln(txtio.AnsiFmt(entry)))
-	}
-
-	*reply = buf.String()
+	reply.ResultEntries = atlasResponse.ResultEntries
 	return nil
 }
 
+// StartRpcServer starts a net/rpc server that exports the ForgetService. It blocks forever.
 func StartRpcServer(atlas *db.Atlas, port int) {
 	forgetService := ForgetService{Atlas: atlas}
-	rpc.Register(&forgetService)
+	err := rpc.Register(&forgetService)
+	if err != nil {
+		log.Fatal(err)
+	}
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatal(err)
@@ -38,15 +34,16 @@ func StartRpcServer(atlas *db.Atlas, port int) {
 	rpc.Accept(l)
 }
 
-func Request(host string, port int, qstr string) (string, error) {
+// Request makes a request to a ForgetService hosted at the specified host+port.
+func Request(host string, port int, qstr string) (db.AtlasResponse, error) {
 	client, err := rpc.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
-		return "", err
+		return db.AtlasResponse{}, err
 	}
-	var response string
-	err = client.Call("ForgetService.Query", qstr, &response)
+	var atlasResponse db.AtlasResponse
+	err = client.Call("ForgetService.Query", qstr, &atlasResponse)
 	if err != nil {
-		return "", err
+		return db.AtlasResponse{}, err
 	}
-	return response, nil
+	return atlasResponse, nil
 }

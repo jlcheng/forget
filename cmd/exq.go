@@ -18,7 +18,7 @@ const (
 var exqCmd = &cobra.Command{
 	Use:   "exq",
 	Short: "Query the index",
-	Long: `Runs a query against the index`,
+	Long:  `Runs a query against the index`,
 	Run: func(cmd *cobra.Command, args []string) {
 		CliCfg.SetTraceLevel()
 
@@ -44,6 +44,7 @@ var exqCmd = &cobra.Command{
 
 var full = false
 var limit = 0
+
 func init() {
 	rootCmd.AddCommand(exqCmd)
 	rootCmd.PersistentFlags().BoolVar(&full, "full", false, "include full results")

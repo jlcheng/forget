@@ -17,7 +17,6 @@ import (
 
 import _ "net/http/pprof"
 
-
 var exloadArg = struct {
 	force bool
 }{
@@ -61,7 +60,7 @@ func init() {
 }
 
 func CreateAndPopulateIndex(dataDirs []string, indexDir string, force bool) error {
-	trace.Debug(fmt.Sprintf("createAndPopulateIndex from (%v) to (%v)",dataDirs, indexDir))
+	trace.Debug(fmt.Sprintf("createAndPopulateIndex from (%v) to (%v)", dataDirs, indexDir))
 
 	// If indexDir exists, delete it or return error
 	if f, err := os.Stat(indexDir); err == nil {
@@ -84,7 +83,7 @@ func CreateAndPopulateIndex(dataDirs []string, indexDir string, force bool) erro
 	defer atlas.Close()
 
 	stime := time.Now()
-	helper := &indexHelper{atlas:atlas}
+	helper := &indexHelper{atlas: atlas}
 
 	for _, dataDir := range dataDirs {
 		dataDirInfo, err := os.Stat(dataDir)
@@ -103,9 +102,9 @@ func CreateAndPopulateIndex(dataDirs []string, indexDir string, force bool) erro
 }
 
 type indexHelper struct {
-	atlas *db.Atlas
+	atlas     *db.Atlas
 	totalSize int64
-	count int
+	count     int
 }
 
 func (i *indexHelper) indexFiles(path string, info os.FileInfo) error {
@@ -130,9 +129,9 @@ func (i *indexHelper) indexFiles(path string, info os.FileInfo) error {
 
 	// Finally, index the heck out of this file
 	doc := db.Note{
-		ID: path,
-		Body: debugReadFile(path),
-		Title: info.Name(),
+		ID:         path,
+		Body:       debugReadFile(path),
+		Title:      info.Name(),
 		AccessTime: info.ModTime().Unix(),
 	}
 	i.atlas.Enqueue(doc)
@@ -141,7 +140,6 @@ func (i *indexHelper) indexFiles(path string, info os.FileInfo) error {
 	trace.Debug("indexed", doc.ID)
 	return nil
 }
-
 
 func debugReadFile(fileName string) string {
 	f, err := os.Open(fileName)
