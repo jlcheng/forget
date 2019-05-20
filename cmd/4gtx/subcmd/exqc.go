@@ -2,6 +2,7 @@ package subcmd
 
 import (
 	"fmt"
+	"github.com/jlcheng/forget/cli"
 	"github.com/jlcheng/forget/rpc"
 	"github.com/jlcheng/forget/txtio"
 	"github.com/spf13/cobra"
@@ -16,7 +17,7 @@ var exqcCmd = &cobra.Command{
 	Long:  `Runs 4gt exq network client`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("This command is deprecated. Use `4gt` instead")
-		CliCfg.SetTraceLevel()
+		cli.SetTraceLevel()
 
 		qterms := make([]string, len(args))
 		for idx := range args {

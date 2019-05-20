@@ -2,6 +2,7 @@ package subcmd
 
 import (
 	"fmt"
+	"github.com/jlcheng/forget/cli"
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/trace"
 	"github.com/spf13/cobra"
@@ -14,7 +15,7 @@ var exdumpCmd = &cobra.Command{
 	Short: "Dumps the index into the specified directory.",
 	Long:  "Dumps the index into the specified directory.",
 	Run: func(cmd *cobra.Command, args []string) {
-		CliCfg.SetTraceLevel()
+		cli.SetTraceLevel()
 		fmt.Println("exdump called")
 		atlas, err := db.Open(CliCfg.GetIndexDir(), 16)
 		if err != nil {

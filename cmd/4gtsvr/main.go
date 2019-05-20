@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"fmt"
 	"github.com/jlcheng/forget/cli"
@@ -12,7 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"	
+	"time"
 )
 
 import _ "net/http/pprof"
@@ -24,13 +23,13 @@ func main() {
 
 	var port int
 	var duration int
-	
+
 	var rootCmd = &cobra.Command{
 		Use:   "4gt",
 		Short: "Starts the 4gt server",
 		Long:  `Starts the 4gt server`,
 		Run: func(cmd *cobra.Command, args []string) {
-			CliCfg.SetTraceLevel()
+			cli.SetTraceLevel()
 
 			// turn on pprof if specified
 			if viper.GetBool(cli.PPROF_ENABLED) {
@@ -39,7 +38,6 @@ func main() {
 					log.Println(http.ListenAndServe("localhost:6060", nil))
 				}()
 			}
-			
 
 			runexsvr := watcher.NewWatcherFacade()
 			defer runexsvr.Close()
@@ -51,19 +49,19 @@ func main() {
 		},
 	}
 	pflags := rootCmd.PersistentFlags()
-	
+
 	pflags.IntVarP(&port, "port", "p", 8181, "rpc port")
 	pflags.IntVarP(&duration, "duration", "t", 10, "seconds between polling the file system for changes")
 	pflags.StringP(cli.LOG_LEVEL, "L", "None", "log level: NONE, DEBUG, or WARN")
 	if err := viper.BindPFlag(cli.LOG_LEVEL, pflags.Lookup(cli.LOG_LEVEL)); err != nil {
 		log.Fatal(err)
 	}
-	
+
 	pflags.Bool(cli.PPROF_ENABLED, false, "if specified, turn on pprof on port 6060")
 	if err := viper.BindPFlag(cli.PPROF_ENABLED, pflags.Lookup(cli.PPROF_ENABLED)); err != nil {
 		log.Fatal(err)
 	}
-	
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}

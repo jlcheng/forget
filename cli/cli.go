@@ -25,7 +25,7 @@ func (c *CLIConfig) GetDataDirs() []string {
 	return viper.GetStringSlice(DATA_DIRS)
 }
 
-func (c *CLIConfig) SetTraceLevel() {
+func SetTraceLevel() {
 	switch strings.ToUpper(viper.GetString(LOG_LEVEL)) {
 	case "DEBUG":
 		trace.Level = trace.LOG_DEBUG

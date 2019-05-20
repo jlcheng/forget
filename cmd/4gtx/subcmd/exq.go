@@ -2,6 +2,7 @@ package subcmd
 
 import (
 	"fmt"
+	"github.com/jlcheng/forget/cli"
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/trace"
 	"github.com/jlcheng/forget/txtio"
@@ -20,7 +21,7 @@ var exqCmd = &cobra.Command{
 	Short: "Query the index",
 	Long:  `Runs a query against the index`,
 	Run: func(cmd *cobra.Command, args []string) {
-		CliCfg.SetTraceLevel()
+		cli.SetTraceLevel()
 
 		atlas, err := db.Open(CliCfg.GetIndexDir(), BATCH_SIZE)
 		if err != nil {

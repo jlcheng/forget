@@ -2,6 +2,7 @@ package subcmd
 
 import (
 	"fmt"
+	"github.com/jlcheng/forget/cli"
 	"github.com/jlcheng/forget/trace"
 	"github.com/jlcheng/forget/watcher"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var exsvrCmd = &cobra.Command{
 	Long:  `Runs 4gt server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("This command is deprecated. Use 4gtsvr instead")
-		CliCfg.SetTraceLevel()
+		cli.SetTraceLevel()
 
 		runexsvr := watcher.NewWatcherFacade()
 		defer runexsvr.Close()

@@ -26,7 +26,7 @@ func TestWatcherAPI(t *testing.T) {
 	if err := w.AddRecursive(tempDir); err != nil {
 		log.Fatal(err)
 	}
-	
+
 	var printGoRoutine sync.WaitGroup // notifies main thread that the following goroutine has stopped
 	printGoRoutine.Add(1)
 	go func() {
@@ -56,7 +56,7 @@ func TestWatcherAPI(t *testing.T) {
 		if err = os.Mkdir(dir1, 0755); err != nil {
 			log.Fatal(err)
 		}
-		
+
 		if err = ioutil.WriteFile(file2, []byte("test2"), 0644); err != nil {
 			log.Fatal(err)
 		}

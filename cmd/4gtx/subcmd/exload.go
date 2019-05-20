@@ -36,7 +36,7 @@ the timestamp of the document.
 exloads will fail if the index directory is non-empty.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		CliCfg.SetTraceLevel()
+		cli.SetTraceLevel()
 		dataDirs := viper.GetStringSlice(cli.DATA_DIRS)
 
 		if CliCfg.GetIndexDir() == "" {

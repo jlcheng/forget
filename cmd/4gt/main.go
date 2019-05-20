@@ -1,92 +1,100 @@
 package main
 
-
 import (
 	"fmt"
 	"github.com/jlcheng/forget/cli"
 	"github.com/jlcheng/forget/rpc"
 	"github.com/jlcheng/forget/txtio"
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
-	"net/http"
 	"os"
 	"strings"
-	"time"	
+	"time"
 )
 
-var CliCfg = cli.CLIConfig{}
+// Keys used to store and lookup values through the Viper API
+const (
+	nameHost = "host"
+	namePort = "port"
+)
 
-func main() {
-	cobra.OnInitialize(cobraInit)
+// This must be global so it can be shared between the Cobra and Viper APIs
+var config string = ""
 
-	var host = "localhost"
-	var port = 8181
-	
-	var rootCmd = &cobra.Command{
-		Use:   "4gt",
-		Short: "Query the 4gt server",
-		Long:  `Query the 4gt server`,
-		Run: func(cmd *cobra.Command, args []string) {
-			CliCfg.SetTraceLevel()
+// This must be global so we can bind values parsed by Cobra to the Viper API
+var rootCmd = &cobra.Command{
+	Use:   "4gt",
+	Short: "Query the 4gt server",
+	Long:  "Query the 4gt server",
+	Run:   cobraMain,
+}
 
-			qterms := make([]string, len(args))
-			for idx := range args {
-				qterms[idx] = "+" + args[idx]
-			}
-			stime := time.Now()
-			atlasResponse, err := rpc.Request(host, port, strings.Join(args, " "))
-			if err != nil {
-				log.Fatal(err)
-			}
-			
-			fmt.Printf("Found %v notes in %v\n", len(atlasResponse.ResultEntries), time.Since(stime))
-			for _, entry := range atlasResponse.ResultEntries {
-				fmt.Println(txtio.AnsiFmt(entry))
-			}
-		},
+func cobraMain(cmd *cobra.Command, args []string) {
+	cli.SetTraceLevel()
+	host := viper.GetString(nameHost)
+	port := viper.GetInt(namePort)
+
+	qterms := make([]string, len(args))
+	for idx := range args {
+		qterms[idx] = "+Body:" + args[idx]
 	}
-	rootCmd.PersistentFlags().IntVarP(&port, "port", "p", 8181, "rpc port")
-	rootCmd.PersistentFlags().StringVarP(&host, "host", "H", "localhost", "rpc host")
-	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
-	}
+	SendQuery(host, port, strings.Join(qterms, " "))
 }
 
 // Loads configuration files
 func cobraInit() {
-	if CliCfg.CfgFile != "" {
+	if config != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(CliCfg.CfgFile)
+		viper.SetConfigFile(config)
 	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
+		// Search config in home directory with name ".forget" (without extension).
+		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
-		// Search config in home directory with name ".forget" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".forget")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
-
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Error loading config file.", err)
+		log.Println("Error loading config file.", err)
 
 	}
 	if viper.ConfigFileUsed() != "" {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
-	// turn on pprof if specified
-	if viper.GetBool(cli.PPROF_ENABLED) {
-		go func() {
-			log.Println(http.ListenAndServe("localhost:6060", nil))
-		}()
+	// Bind flags from the command line to the viper framework
+	if err := viper.BindPFlags(rootCmd.Flags()); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// TODO: Move this into the main directory
+func SendQuery(host string, port int, query string) {
+	stime := time.Now()
+	atlasResponse, err := rpc.Request(host, port, query)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Found %v lines in %v\n", len(atlasResponse.ResultEntries), time.Since(stime))
+	for _, entry := range atlasResponse.ResultEntries {
+		fmt.Println(txtio.AnsiFmt(entry))
+	}
+}
+
+func main() {
+	rootCmd.Flags().StringVar(&config, "config", "", "config file (default: $HOME/.forget.toml)")
+	rootCmd.Flags().IntP(namePort, "p", 8181, "rpc port")
+	rootCmd.Flags().StringP(nameHost, "H", "localhost", "rpc host")
+
+	cobra.OnInitialize(cobraInit)
+
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
 	}
 }
