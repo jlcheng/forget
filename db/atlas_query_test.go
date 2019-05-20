@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/search"
 	"github.com/blevesearch/bleve/search/query"
 	"github.com/jlcheng/forget/testkit"
 	"reflect"
@@ -26,7 +25,9 @@ func TestPrintDocumentMatch(t *testing.T) {
 		Title:      "",
 		AccessTime: 0,
 	}
-	atlas.Enqueue(note)
+	if err := atlas.Enqueue(note); err != nil {
+		t.Fatal(err)
+	}
 	atlas.Flush()
 	index := atlas.rawIndex()
 	q := query.NewQueryStringQuery("brown")
@@ -46,17 +47,6 @@ func TestPrintDocumentMatch(t *testing.T) {
 	if got := TermLocationToStr(&termLocationMap); got != expected {
 		t.Fatal("unexpected formatting:", got)
 	}
-}
-
-func MockNoteOneTermLocationMap() search.TermLocationMap {
-	termLocationMap := search.TermLocationMap{}
-	termLocationMap["brown"] = search.Locations{}
-	locs := termLocationMap["brown"]
-	locs = append(locs, &search.Location{Start: 4, End: 9, Pos: 2})
-	locs = append(locs, &search.Location{Start: 40, End: 45, Pos: 10})
-	locs = append(locs, &search.Location{Start: 77, End: 82, Pos: 18})
-	termLocationMap["brown"] = locs
-	return termLocationMap
 }
 
 func TestGetLineAround(t *testing.T) {

@@ -69,7 +69,7 @@ func getLineAround(text string, start, end uint64) (uint64, string) {
 // Flattens the DocumentMatch's Term=>Location map into a collection of matching lines. The error is non-nil if
 // mapping fails.
 func mapDocumentMatchToResultEntrySlice(fieldName string, dm *search.DocumentMatch) ([]ResultEntry, error) {
-	emptyResponse := make([]ResultEntry, 0, 0)
+	emptyResponse := make([]ResultEntry, 0)
 	body, err := resolveBody(fieldName, dm)
 	if err != nil {
 		return emptyResponse, err
@@ -138,9 +138,7 @@ func mapSearchResult(fieldName string, searchResult *bleve.SearchResult) AtlasRe
 			log.Println("cannot map DocumentMap, skipping", dm.ID, err)
 			continue
 		}
-		for _, entry := range resultEntries {
-			ar.ResultEntries = append(ar.ResultEntries, entry)
-		}
+		ar.ResultEntries = append(ar.ResultEntries, resultEntries...)
 	}
 	return ar
 }

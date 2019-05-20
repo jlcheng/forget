@@ -82,7 +82,7 @@ func TestAtlasRead(t *testing.T) {
 		}
 
 		for _, given := range tcase.GivenNotes {
-			atlas.Enqueue(given)
+			_ = atlas.Enqueue(given)
 		}
 		atlas.Flush()
 

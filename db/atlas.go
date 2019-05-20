@@ -190,8 +190,7 @@ func NewIndexMapping() (mapping.IndexMapping, error) {
 	noteMapping.AddFieldMappingsAt(ACCESS_TIME, accessTimeMapping)
 
 	const token_length_filter = "token_length_filter"
-	var err error
-	err = indexMapping.AddCustomTokenFilter(token_length_filter,
+	err := indexMapping.AddCustomTokenFilter(token_length_filter,
 		map[string]interface{}{
 			"type": length.Name,
 			"min":  2.0,

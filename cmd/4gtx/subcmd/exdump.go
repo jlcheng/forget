@@ -20,7 +20,7 @@ var exdumpCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err = IterateDocuments(atlas, nil); err != nil {
+		if err = IterateDocuments(atlas); err != nil {
 			log.Fatal(err)
 		}
 		atlas.Close()
@@ -31,20 +31,15 @@ func InitExdump() {
 	rootCmd.AddCommand(exdumpCmd)
 }
 
-type IDHandler func(param ...interface{}) error
-
 // IterateDocuments
-func IterateDocuments(atlas *db.Atlas, foo IDHandler) error {
+func IterateDocuments(atlas *db.Atlas) error {
 	trace.Debug("IterateDocuments")
 	docs, err := atlas.DumpAll()
 	if err != nil {
 		return err
 	}
-	for idx, doc := range docs {
+	for _, doc := range docs {
 		trace.Debug(doc.PrettyString())
-		if foo != nil {
-			foo(idx, doc)
-		}
 	}
 	return nil
 }

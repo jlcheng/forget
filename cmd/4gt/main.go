@@ -45,12 +45,13 @@ func main() {
 			for _, entry := range atlasResponse.ResultEntries {
 				fmt.Println(txtio.AnsiFmt(entry))
 			}
-			return			
 		},
 	}
 	rootCmd.PersistentFlags().IntVarP(&port, "port", "p", 8181, "rpc port")
 	rootCmd.PersistentFlags().StringVarP(&host, "host", "H", "localhost", "rpc host")
-	rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Loads configuration files

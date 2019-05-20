@@ -1,7 +1,6 @@
 package bleve
 
 import (
-	"errors"
 	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzer/custom"
@@ -29,8 +28,7 @@ func TestIndexMapping(t *testing.T) {
 	indexMapping := bleve.NewIndexMapping()
 	indexMapping.AddDocumentMapping("_default", noteMapping)
 
-	var err error
-	err = indexMapping.AddCustomTokenFilter(max_token_length,
+	err := indexMapping.AddCustomTokenFilter(max_token_length,
 		map[string]interface{}{
 			"type": length.Name,
 			"min":  5.0,
@@ -102,7 +100,7 @@ func assertSearchResultLen(index bleve.Index, query string, expected int) error 
 	}
 	got := len(searchResult.Hits)
 	if expected != got {
-		return errors.New(fmt.Sprintf("expected: %d, got: %d, query: %s", expected, got, query))
+		return fmt.Errorf("expected: %d, got: %d, query: %s", expected, got, query)
 	}
 	return nil
 }

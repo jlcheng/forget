@@ -45,7 +45,7 @@ func InitCobra() {
 		log.Fatal(err)
 	}
 
-	pflags.StringSlice(cli.DATA_DIRS, make([]string, 0, 0), "data directories")
+	pflags.StringSlice(cli.DATA_DIRS, make([]string, 0), "data directories")
 	if err := viper.BindPFlag(cli.DATA_DIRS, rootCmd.PersistentFlags().Lookup(cli.DATA_DIRS)); err != nil {
 		log.Fatal(err)
 	}

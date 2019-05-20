@@ -28,8 +28,5 @@ func FilterFile(path string, info os.FileInfo) bool {
 
 	// Omitting large files
 	const ONE_MB = int64(1024 * 1024)
-	if info.Size() > ONE_MB {
-		return false
-	}
-	return true
+	return info.Size() < ONE_MB
 }

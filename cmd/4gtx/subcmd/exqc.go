@@ -31,8 +31,6 @@ var exqcCmd = &cobra.Command{
 		for _, entry := range atlasResponse.ResultEntries {
 			fmt.Println(txtio.AnsiFmt(entry))
 		}
-		return
-
 	},
 }
 

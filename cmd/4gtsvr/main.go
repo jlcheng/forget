@@ -64,7 +64,9 @@ func main() {
 		log.Fatal(err)
 	}
 	
-	rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Loads configuration files

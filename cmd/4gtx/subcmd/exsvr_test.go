@@ -45,14 +45,16 @@ func TestRunExsvr(t *testing.T) {
 		t.Error(err)
 	}
 	defer f.Close()
-	f.WriteString("this is my testcase")
-	f.Close()
+	_, err = f.WriteString("this is my testcase")
+	if err != nil {
+		t.Error(err)
+	}
 	time.Sleep(time.Millisecond * 200)
 	response, err := rpc.Request("localhost", RPC_PORT, "testcase")
 	if err != nil {
 		t.Error(err)
 	}
 	if len(response.ResultEntries) != 1 {
-		t.Fatal("expected one result")
+		t.Error("expected one result")
 	}
 }

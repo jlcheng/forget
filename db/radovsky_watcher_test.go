@@ -20,12 +20,16 @@ func TestWatcherAPI(t *testing.T) {
 		return
 	}
 
-	events := make([]watcher.Event, 0, 0)
+	events := make([]watcher.Event, 0)
 
 	w := watcher.New()
+	if err := w.AddRecursive(tempDir); err != nil {
+		log.Fatal(err)
+	}
+	
 	var printGoRoutine sync.WaitGroup // notifies main thread that the following goroutine has stopped
+	printGoRoutine.Add(1)
 	go func() {
-		printGoRoutine.Add(1)
 		stop := false
 		for !stop {
 			select {
@@ -39,13 +43,8 @@ func TestWatcherAPI(t *testing.T) {
 		}
 		printGoRoutine.Done()
 	}()
-
-	if err := w.AddRecursive(tempDir); err != nil {
-		log.Fatal(err)
-	}
-
 	go func() {
-		w.Wait()
+		w.Wait() // Blocks until Watcher is started
 		file1 := path.Join(tempDir, "test1.txt")
 		dir1 := path.Join(tempDir, "dir1")
 		file2 := path.Join(tempDir, "dir1", "test2.txt")
@@ -56,10 +55,10 @@ func TestWatcherAPI(t *testing.T) {
 
 		if err = os.Mkdir(dir1, 0755); err != nil {
 			log.Fatal(err)
-		} else {
-			if err := ioutil.WriteFile(file2, []byte("test2"), 0644); err != nil {
-				log.Fatal(err)
-			}
+		}
+		
+		if err = ioutil.WriteFile(file2, []byte("test2"), 0644); err != nil {
+			log.Fatal(err)
 		}
 
 		time.Sleep(time.Millisecond * 1000)

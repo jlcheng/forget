@@ -28,6 +28,10 @@ var exqCmd = &cobra.Command{
 			return
 		}
 		docCount, err := atlas.GetDocCount()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 		trace.Debug("atlas size:", docCount)
 		stime := time.Now()
 		atlasResponse := atlas.QueryForResponse(strings.Join(args, " "))

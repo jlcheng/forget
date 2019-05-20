@@ -134,7 +134,9 @@ func (i *indexHelper) indexFiles(path string, info os.FileInfo) error {
 		Title:      info.Name(),
 		AccessTime: info.ModTime().Unix(),
 	}
-	i.atlas.Enqueue(doc)
+	if err := i.atlas.Enqueue(doc); err != nil {
+		return err
+	}
 	i.totalSize = i.totalSize + info.Size()
 	i.count = i.count + 1
 	trace.Debug("indexed", doc.ID)
