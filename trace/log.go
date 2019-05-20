@@ -2,7 +2,7 @@ package trace
 
 import "fmt"
 
-//go:generate stringer -type LogLevel
+//go:generate stringer -type LogLevel -output loglevel_string.go
 
 type LogLevel int
 
