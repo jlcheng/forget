@@ -36,8 +36,12 @@ func cobraMain(cmd *cobra.Command, args []string) {
 	port := viper.GetInt(namePort)
 
 	qterms := make([]string, len(args))
-	for idx := range args {
-		qterms[idx] = "+Body:" + args[idx]
+	for idx, elem := range args {
+		if strings.Contains(elem, " ") {
+			qterms[idx] = fmt.Sprintf("+Body:\"%v\"", elem)
+		} else {
+			qterms[idx] = fmt.Sprintf("+Body:%v", elem)
+		}
 	}
 	SendQuery(host, port, strings.Join(qterms, " "))
 }
