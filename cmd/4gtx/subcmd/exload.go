@@ -8,7 +8,6 @@ import (
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/trace"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,11 +16,7 @@ import (
 
 import _ "net/http/pprof"
 
-var exloadArg = struct {
-	force bool
-}{
-	false,
-}
+var exloadForce = false
 
 // exloadCmd represents the exloads command
 var exloadCmd = &cobra.Command{
@@ -37,9 +32,9 @@ exloads will fail if the index directory is non-empty.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		cli.SetTraceLevel()
-		dataDirs := viper.GetStringSlice(cli.DATA_DIRS)
+		dataDirs := cli.DataDirs()
 
-		if CliCfg.GetIndexDir() == "" {
+		if cli.IndexDir() == "" {
 			fmt.Println("index must be specified")
 			return
 		}
@@ -47,7 +42,7 @@ exloads will fail if the index directory is non-empty.
 			fmt.Println("dataDirs must be specified")
 			return
 		}
-		err := CreateAndPopulateIndex(viper.GetStringSlice(cli.DATA_DIRS), CliCfg.GetIndexDir(), exloadArg.force)
+		err := CreateAndPopulateIndex(dataDirs, cli.IndexDir(), exloadForce)
 		if err != nil {
 			trace.OnError(err)
 		}
@@ -56,7 +51,7 @@ exloads will fail if the index directory is non-empty.
 
 func InitExload() {
 	rootCmd.AddCommand(exloadCmd)
-	exloadCmd.PersistentFlags().BoolVarP(&exloadArg.force, "force", "f", false, "forces index to run, even if indexDir already exists")
+	exloadCmd.PersistentFlags().BoolVarP(&exloadForce, "force", "f", false, "forces index to run, even if indexDir already exists")
 }
 
 func CreateAndPopulateIndex(dataDirs []string, indexDir string, force bool) error {

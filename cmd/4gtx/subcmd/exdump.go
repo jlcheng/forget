@@ -17,7 +17,7 @@ var exdumpCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cli.SetTraceLevel()
 		fmt.Println("exdump called")
-		atlas, err := db.Open(CliCfg.GetIndexDir(), 16)
+		atlas, err := db.Open(cli.IndexDir(), 16)
 		if err != nil {
 			log.Fatal(err)
 		}

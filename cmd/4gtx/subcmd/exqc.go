@@ -40,6 +40,6 @@ var exqcHost string
 
 func InitExqc() {
 	rootCmd.AddCommand(exqcCmd)
-	exqcCmd.PersistentFlags().IntVarP(&exqcPort, "port", "p", 8181, "rpc port")
-	exqcCmd.PersistentFlags().StringVarP(&exqcHost, "host", "H", "localhost", "rpc host")
+	exqcCmd.Flags().IntVarP(&exqcPort, "port", "p", 8181, "rpc port")
+	exqcCmd.Flags().StringVarP(&exqcHost, "host", "H", "localhost", "rpc host")
 }
