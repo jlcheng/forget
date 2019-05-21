@@ -59,10 +59,10 @@ func SetTraceLevel() {
 
 // ConfigureFlagSet configures the given *pflag.FlagSet for parsing
 func ConfigureFlagSet(flags *pflag.FlagSet) {
-	flags.StringVar(&ConfigFile, "config", "", "config file (default is $HOME/.forget.toml)")
+	flags.StringVar(&ConfigFile, CONFIG, "", "config file (default is $HOME/.forget.toml)")
 	flags.StringSlice(DATA_DIRS, make([]string, 0), "data directories")
-	flags.StringP(INDEX_DIR, "i", "", "path to the index directory")
 	flags.String(HOST, "localhost", "hostname of the 4gtsvr")
+	flags.StringP(INDEX_DIR, "i", "", "path to the index directory")
 	flags.StringP(LOG_LEVEL, "L", "None", "log level: NONE, DEBUG, or WARN")
 	flags.IntP(PORT, "p", 8181, "rpc port")
 	flags.Bool(PPROF_ENABLED, false, "enable pprof server")
