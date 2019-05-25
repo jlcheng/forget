@@ -25,7 +25,7 @@ clean:
 
 .PHONY: test
 test: $(GENERATED)
-	go test ./db/... ./cmd/...
+	go test ./db/... ./cmd/... ./watcher/...
 
 .PHONY: fmt
 fmt:

@@ -1,9 +1,9 @@
-package subcmd
+package watcher
 
 import (
 	"github.com/jlcheng/forget/rpc"
+	"github.com/jlcheng/forget/testkit"
 	"github.com/jlcheng/forget/trace"
-	"github.com/jlcheng/forget/watcher"
 	"io/ioutil"
 	"os"
 	"path"
@@ -11,26 +11,27 @@ import (
 	"time"
 )
 
-func TestRunExsvr(t *testing.T) {
+// TestRpcSearch is a Gateway Intergration Test
+func TestRpcSearch(t *testing.T) {
 	const RPC_PORT = 63999
 	var err error
-	indexDir, err := ioutil.TempDir("", "4gt-index")
+	indexDir, err := ioutil.TempDir("", "4gt-index_")
 	if err != nil {
 		t.Error(err)
 	}
-	defer os.RemoveAll(indexDir)
-	dataDir1, err := ioutil.TempDir("", "4gt-data1")
+	defer testkit.TempDirRemoveAll(indexDir)
+	dataDir1, err := ioutil.TempDir("", "4gt-data1_")
 	if err != nil {
 		t.Error(err)
 	}
-	defer os.RemoveAll(dataDir1)
-	dataDir2, err := ioutil.TempDir("", "4gt-data2")
+	defer testkit.TempDirRemoveAll(dataDir1)
+	dataDir2, err := ioutil.TempDir("", "4gt-data2_")
 	if err != nil {
 		t.Error(err)
 	}
-	defer os.RemoveAll(dataDir2)
+	defer testkit.TempDirRemoveAll(dataDir2)
 
-	runexsvr := watcher.NewWatcherFacade()
+	runexsvr := NewWatcherFacade()
 	defer runexsvr.Close()
 	go func() {
 		err := runexsvr.Listen(RPC_PORT, indexDir, []string{dataDir1, dataDir2}, time.Millisecond*10)
@@ -39,12 +40,13 @@ func TestRunExsvr(t *testing.T) {
 			os.Exit(1)
 		}
 	}()
+
 	time.Sleep(time.Millisecond * 100)
 	f, err := os.Create(path.Join(dataDir2, "first.txt"))
 	if err != nil {
 		t.Error(err)
 	}
-	defer f.Close()
+	defer testkit.TempCloserClose(f)
 	_, err = f.WriteString("this is my testcase")
 	if err != nil {
 		t.Error(err)
@@ -57,4 +59,6 @@ func TestRunExsvr(t *testing.T) {
 	if len(response.ResultEntries) != 1 {
 		t.Error("expected one result")
 	}
+
+
 }
