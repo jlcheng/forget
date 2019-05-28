@@ -11,13 +11,13 @@ import (
 )
 
 const (
-	CONFIG        = "config"
-	DATA_DIRS     = "dataDirs"
-	HOST          = "host"
-	INDEX_DIR     = "indexDir"
-	LOG_LEVEL     = "logLevel"
-	PORT          = "port"
-	PPROF_ENABLED = "pprof"
+	ConfigParam   = "config"
+	DataDirsParam = "dataDirs"
+	HostParam     = "host"
+	IndexDirParam = "indexDir"
+	LogLevelParam = "logLevel"
+	PortParam     = "port"
+	PprofParam    = "pprof"
 )
 
 var ConfigFile = ""
@@ -27,27 +27,27 @@ func Config() string {
 }
 
 func DataDirs() []string {
-	return viper.GetStringSlice(DATA_DIRS)
+	return viper.GetStringSlice(DataDirsParam)
 }
 
 func Host() string {
-	return viper.GetString(HOST)
+	return viper.GetString(HostParam)
 }
 
 func IndexDir() string {
-	return viper.GetString(INDEX_DIR)
+	return viper.GetString(IndexDirParam)
 }
 
 func Port() int {
-	return viper.GetInt(PORT)
+	return viper.GetInt(PortParam)
 }
 
 func PprofEnabled() bool {
-	return viper.GetBool(PPROF_ENABLED)
+	return viper.GetBool(PprofParam)
 }
 
 func SetTraceLevel() {
-	switch strings.ToUpper(viper.GetString(LOG_LEVEL)) {
+	switch strings.ToUpper(viper.GetString(LogLevelParam)) {
 	case "DEBUG":
 		trace.Level = trace.LOG_DEBUG
 	case "WARN":
@@ -59,13 +59,13 @@ func SetTraceLevel() {
 
 // ConfigureFlagSet configures the given *pflag.FlagSet for parsing
 func ConfigureFlagSet(flags *pflag.FlagSet) {
-	flags.StringVar(&ConfigFile, CONFIG, "", "config file (default is $HOME/.forget.toml)")
-	flags.StringSlice(DATA_DIRS, make([]string, 0), "data directories")
-	flags.String(HOST, "localhost", "hostname of the 4gtsvr")
-	flags.StringP(INDEX_DIR, "i", "", "path to the index directory")
-	flags.StringP(LOG_LEVEL, "L", "None", "log level: NONE, DEBUG, or WARN")
-	flags.IntP(PORT, "p", 8181, "rpc port")
-	flags.Bool(PPROF_ENABLED, false, "enable pprof server")
+	flags.StringVar(&ConfigFile, ConfigParam, "", "config file (default is $HOME/.forget.toml)")
+	flags.StringSlice(DataDirsParam, make([]string, 0), "data directories")
+	flags.String(HostParam, "localhost", "hostname of the 4gtsvr")
+	flags.StringP(IndexDirParam, "i", "", "path to the index directory")
+	flags.StringP(LogLevelParam, "L", "None", "log level: NONE, DEBUG, or WARN")
+	flags.IntP(PortParam, "p", 8181, "rpc port")
+	flags.Bool(PprofParam, false, "enable pprof server")
 }
 
 // ProcessParsedFlagSet uses a parsed *pflag.FlagSet to kick-off processing of the config file
@@ -98,5 +98,7 @@ func ProcessParsedFlagSet(flags *pflag.FlagSet) error {
 	if err := viper.BindPFlags(flags); err != nil {
 		return errors.WithStack(err)
 	}
+
+	SetTraceLevel()
 	return nil
 }
