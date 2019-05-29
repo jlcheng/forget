@@ -18,11 +18,11 @@ import (
 func GrepClient(args []string) error {
 	qterms := make([]string, len(args))
 	for idx := range args {
-		qterms[idx] = "+" + args[idx]
+		qterms[idx] = fmt.Sprintf(`+Body:"%s"`, args[idx])
 	}
 	stime := time.Now()
 
-	sr, err := atlasrpc.RequestForBleveSearchResult(cli.Host(), cli.Port(), strings.Join(args, " "))
+	sr, err := atlasrpc.RequestForBleveSearchResult(cli.Host(), cli.Port(), strings.Join(qterms, " "))
 	if err != nil {
 		return err
 	}

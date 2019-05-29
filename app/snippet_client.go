@@ -12,9 +12,9 @@ import (
 func SnippetClient(args []string) error {
 	qterms := make([]string, len(args))
 	for idx := range args {
-		qterms[idx] = "+" + args[idx]
+		qterms[idx] = "+Body:" + args[idx]
 	}
-	sr, err := atlasrpc.RequestForBleveSearchResult(cli.Host(), cli.Port(), strings.Join(args, " "))
+	sr, err := atlasrpc.RequestForBleveSearchResult(cli.Host(), cli.Port(), strings.Join(qterms, " "))
 	if err != nil {
 		return err
 	}
