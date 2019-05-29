@@ -91,7 +91,7 @@ func TestAtlasRead(t *testing.T) {
 			t.Fatal(err, "test case: ", idx)
 		}
 		if !reflect.DeepEqual(tcase.Notes, actualNotes) {
-			t.Fatal("comparison failed. test case:", idx, ",", tcase.Notes, actualNotes)
+			t.Fatal("comparison failed. test case:", idx, "\n===\n", tcase.Notes, "\n===\n", actualNotes)
 		}
 	}
 }

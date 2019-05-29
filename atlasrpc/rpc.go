@@ -16,13 +16,6 @@ type ForgetService struct {
 	Atlas *db.Atlas
 }
 
-// Query exports atlas.QueryForResponse for net/rpc.
-func (svc ForgetService) Query(qstr string, reply *db.AtlasResponse) error {
-	atlasResponse := svc.Atlas.QueryForResponse(qstr)
-	reply.ResultEntries = atlasResponse.ResultEntries
-	return nil
-}
-
 // QueryForBleveSearchResult exports atlas.QueryForBleveSearchResult for net/rpc.
 func (svc ForgetService) QueryForBleveSearchResult(qstr string, reply *bleve.SearchResult) error {
 	searchResult, err := svc.Atlas.QueryForBleveSearchResult(qstr)

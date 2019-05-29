@@ -52,11 +52,11 @@ func TestRpcSearch(t *testing.T) {
 		t.Error(err)
 	}
 	time.Sleep(time.Millisecond * 200)
-	response, err := rpc.Request("localhost", RPC_PORT, "testcase")
+	response, err := atlasrpc.RequestForBleveSearchResult("localhost", RPC_PORT, "testcase")
 	if err != nil {
 		t.Error(err)
 	}
-	if len(response.ResultEntries) != 1 {
+	if response.Total != 1 {
 		t.Error("expected one result")
 	}
 

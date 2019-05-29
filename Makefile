@@ -3,6 +3,11 @@ GOGEN=go generate
 
 GENERATED=trace/loglevel_string.go
 
+# Set to 1 because tests currently share the same GetTempIndexDir(). Parallel test
+# execution will introduce unreproducible test failures due to races.
+PARALLEL_TESTS=1
+
+
 .PHONY: all
 all: test build
 
@@ -19,7 +24,7 @@ clean:
 
 .PHONY: test
 test: $(GENERATED)
-	go test ./cmd/... ./db/...  ./orgmode/... ./watcher/... 
+	go test -p $(PARALLEL_TESTS) ./app/... ./cmd/... ./db/...  ./orgmode/... ./watcher/...
 
 .PHONY: fmt
 fmt:
