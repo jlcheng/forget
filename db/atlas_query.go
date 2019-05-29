@@ -54,6 +54,14 @@ func (s *Atlas) QueryForResponse(qstr string) AtlasResponse {
 	return mapSearchResult("Body", searchResult)
 }
 
+func (s *Atlas) QueryForBleveSearchResult(qstr string) (*bleve.SearchResult, error) {
+	q := query.NewQueryStringQuery(qstr)
+	sr := bleve.NewSearchRequest(q)
+	sr.Fields = []string{"*"}
+	sr.IncludeLocations = true
+	return s.index.Search(sr)
+}
+
 func getLineAround(text string, start, end uint64) (uint64, string) {
 	lineStart := strings.LastIndexByte(text[:start], '\n') + 1
 	lineEnd := strings.IndexRune(text[end:], '\n')

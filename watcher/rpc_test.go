@@ -1,7 +1,7 @@
 package watcher
 
 import (
-	"github.com/jlcheng/forget/rpc"
+	"github.com/jlcheng/forget/atlasrpc"
 	"github.com/jlcheng/forget/testkit"
 	"github.com/jlcheng/forget/trace"
 	"io/ioutil"

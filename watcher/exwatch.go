@@ -3,7 +3,7 @@ package watcher
 import (
 	"fmt"
 	"github.com/jlcheng/forget/db"
-	"github.com/jlcheng/forget/rpc"
+	"github.com/jlcheng/forget/atlasrpc"
 	"github.com/jlcheng/forget/trace"
 	rwatch "github.com/radovskyb/watcher"
 	"io/ioutil"
@@ -37,7 +37,7 @@ func (wfacade *WatcherFacade) Listen(port int, indexDir string, dataDirs []strin
 	trace.Debug("atlas doc count:", docCount)
 
 	fmt.Printf("Starting rpc on port %d\n", port)
-	go rpc.StartRpcServer(atlas, port)
+	go atlasrpc.StartRpcServer(atlas, port)
 
 	// Creates a radovskyb.Watcher. Starts listening to its events. Finally, start the Watcher.
 	for _, dataDir := range dataDirs {

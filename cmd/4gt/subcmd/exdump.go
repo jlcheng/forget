@@ -15,7 +15,6 @@ var exdumpCmd = &cobra.Command{
 	Short: "Dumps the index into the specified directory.",
 	Long:  "Dumps the index into the specified directory.",
 	Run: func(cmd *cobra.Command, args []string) {
-		cli.SetTraceLevel()
 		fmt.Println("exdump called")
 		atlas, err := db.Open(cli.IndexDir(), 16)
 		if err != nil {
