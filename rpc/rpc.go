@@ -3,6 +3,7 @@ package rpc
 import (
 	"fmt"
 	"github.com/jlcheng/forget/db"
+	"github.com/pkg/errors"
 	"log"
 	"net"
 	"net/rpc"
@@ -17,6 +18,17 @@ type ForgetService struct {
 func (svc *ForgetService) Query(qstr string, reply *db.AtlasResponse) error {
 	atlasResponse := svc.Atlas.QueryForResponse(qstr)
 	reply.ResultEntries = atlasResponse.ResultEntries
+	return nil
+}
+
+// QueryForBleveSearchResult exports atlas.QueryForBleveSearchResult for net/rpc.
+func (svc *ForgetService) QueryForBleveSearchResult(qstr string, reply *Foo) error {
+	searchResult, err := svc.Atlas.QueryForBleveSearchResult(qstr)
+	if err != nil {
+		return err
+	}
+	
+	reply.Total = searchResult.Total
 	return nil
 }
 
@@ -46,4 +58,22 @@ func Request(host string, port int, qstr string) (db.AtlasResponse, error) {
 		return db.AtlasResponse{}, err
 	}
 	return atlasResponse, nil
+}
+
+type Foo struct {
+	Total uint64
+}
+
+// RequestForBleveSearchResults makes a request to a ForgetService hosted at the specified host+port
+func RequestForBleveSearchResult(host string, port int, qstr string) (*Foo, error) {
+	client, err := rpc.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	foo := Foo{}
+	err = client.Call("ForgetService.QueryForBleveSearchResult", qstr, &foo)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return &foo, nil
 }

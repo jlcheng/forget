@@ -17,7 +17,6 @@ const (
 	IndexDirParam = "indexDir"
 	LogLevelParam = "logLevel"
 	PortParam     = "port"
-	PprofParam    = "pprof"
 )
 
 var ConfigFile = ""
@@ -42,11 +41,7 @@ func Port() int {
 	return viper.GetInt(PortParam)
 }
 
-func PprofEnabled() bool {
-	return viper.GetBool(PprofParam)
-}
-
-func SetTraceLevel() {
+func setTraceLevel() {
 	switch strings.ToUpper(viper.GetString(LogLevelParam)) {
 	case "DEBUG":
 		trace.Level = trace.LOG_DEBUG
@@ -65,7 +60,6 @@ func ConfigureFlagSet(flags *pflag.FlagSet) {
 	flags.StringP(IndexDirParam, "i", "", "path to the index directory")
 	flags.StringP(LogLevelParam, "L", "None", "log level: NONE, DEBUG, or WARN")
 	flags.IntP(PortParam, "p", 8181, "rpc port")
-	flags.Bool(PprofParam, false, "enable pprof server")
 }
 
 // ProcessParsedFlagSet uses a parsed *pflag.FlagSet to kick-off processing of the config file
@@ -99,6 +93,6 @@ func ProcessParsedFlagSet(flags *pflag.FlagSet) error {
 		return errors.WithStack(err)
 	}
 
-	SetTraceLevel()
+	setTraceLevel()
 	return nil
 }

@@ -30,7 +30,6 @@ func InitRoot() {
 	cli.ConfigureFlagSet(rootCmd.PersistentFlags())
 
 	InitExdump()
-	InitExload()
 	InitExqc()
 	InitExq()
 	InitSvr()
