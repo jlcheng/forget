@@ -1,12 +1,10 @@
 package atlasrpc
 
 import (
-//	"encoding/json"
 	"fmt"
-//	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve"
 	"github.com/jlcheng/forget/db"
 	"github.com/pkg/errors"
-//	"io/ioutil"
 	"log"
 	"net"
 	"net/rpc"
@@ -26,13 +24,13 @@ func (svc ForgetService) Query(qstr string, reply *db.AtlasResponse) error {
 }
 
 // QueryForBleveSearchResult exports atlas.QueryForBleveSearchResult for net/rpc.
-func (svc ForgetService) QueryForBleveSearchResult(qstr string, reply *SearchResult) error {
+func (svc ForgetService) QueryForBleveSearchResult(qstr string, reply *bleve.SearchResult) error {
 	searchResult, err := svc.Atlas.QueryForBleveSearchResult(qstr)
 	if err != nil {
 		return err
 	}
 
-	BleveToAtlasSearchResult(searchResult, reply)
+	*reply = *searchResult
 	return nil
 }
 
@@ -73,12 +71,12 @@ func Request(host string, port int, qstr string) (db.AtlasResponse, error) {
 }
 
 // RequestForBleveSearchResults makes a request to a ForgetService hosted at the specified host+port
-func RequestForBleveSearchResult(host string, port int, qstr string) (*SearchResult, error) {
+func RequestForBleveSearchResult(host string, port int, qstr string) (*bleve.SearchResult, error) {
 	client, err := jsonrpc.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	sr := SearchResult{}
+	var sr bleve.SearchResult
 	err = client.Call("ForgetService.QueryForBleveSearchResult", qstr, &sr)
 	if err != nil {
 		return nil, errors.WithStack(err)
