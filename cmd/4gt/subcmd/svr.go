@@ -2,6 +2,8 @@ package subcmd
 
 import (
 	"github.com/jlcheng/forget/cli"
+	"github.com/jlcheng/forget/db"
+	"github.com/jlcheng/forget/db/files"
 	"github.com/jlcheng/forget/trace"
 	"github.com/jlcheng/forget/watcher"
 	"github.com/spf13/cobra"
@@ -16,6 +18,27 @@ var svrCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		runexsvr := watcher.NewWatcherFacade()
 		defer runexsvr.Close()
+		if rebuild {
+			atlas, err := db.Open(cli.IndexDir(), 100)
+			if err != nil {
+				trace.Warn(err)
+				return
+			}
+			err = files.RebuildIndex(atlas, cli.DataDirs())
+			if err != nil {
+				trace.Warn(err)
+			}
+			err = atlas.Flush()
+			if err != nil {
+				trace.Warn(err)
+			}			
+			err = atlas.Close()
+			if err != nil {
+				trace.Warn(err)
+			}
+		}
+
+		
 		err := runexsvr.Listen(cli.Port(), cli.IndexDir(), cli.DataDirs(), time.Second*time.Duration(svrDuration))
 		if err != nil {
 			trace.PrintStackTrace(err)
@@ -25,8 +48,10 @@ var svrCmd = &cobra.Command{
 }
 
 var svrDuration int
+var rebuild bool
 
 func InitSvr() {
 	rootCmd.AddCommand(svrCmd)
 	svrCmd.Flags().IntVarP(&svrDuration, "duration", "t", 10, "seconds between polling fs for changes")
+	svrCmd.Flags().BoolVar(&rebuild, "rebuild", false, "delete and rebuild the index")
 }

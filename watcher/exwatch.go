@@ -3,6 +3,7 @@ package watcher
 import (
 	"fmt"
 	"github.com/jlcheng/forget/db"
+	"github.com/jlcheng/forget/db/files"
 	"github.com/jlcheng/forget/atlasrpc"
 	"github.com/jlcheng/forget/trace"
 	rwatch "github.com/radovskyb/watcher"
@@ -90,16 +91,17 @@ func onEvent(atlas *db.Atlas, event rwatch.Event) {
 		if !db.FilterFile(path, event.FileInfo) {
 			trace.Debug(fmt.Sprintf("no-index: [%v] %v", path, event.Op))
 		} else {
-			note := db.Note{
-				ID:         path,
-				Body:       slurpFile(path),
-				Title:      event.FileInfo.Name(),
-				AccessTime: event.FileInfo.ModTime().Unix(),
-			}
-			err := atlas.Enqueue(note)
+			notes, err := files.ParseNotes(path)
 			if err != nil {
-				trace.Warn(err)
+				trace.Warn(fmt.Sprintf("cannot index [%v]: %v", path, err))
 			}
+			for _, note := range notes {
+				err = atlas.Enqueue(note)
+				if err != nil {
+					trace.Warn(fmt.Sprintf("cannot index [%v]: %v", note.ID))
+				}
+			}
+
 		}
 	case rwatch.Rename, rwatch.Move:
 		trace.Warn(fmt.Sprintf("not-implemented: %v, %v", event.Op, path))
