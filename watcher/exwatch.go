@@ -98,7 +98,7 @@ func onEvent(atlas *db.Atlas, event rwatch.Event) {
 			for _, note := range notes {
 				err = atlas.Enqueue(note)
 				if err != nil {
-					trace.Warn(fmt.Sprintf("cannot index [%v]: %v", note.ID))
+					trace.Warn(fmt.Sprintf("cannot index [%v]: %v", note.ID, err))
 				}
 			}
 

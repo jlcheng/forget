@@ -29,7 +29,7 @@ func RebuildIndex(atlas *db.Atlas, dirs []string) error {
 			for _, note := range notes {
 				err = atlas.Enqueue(note)
 				if err != nil {
-					trace.Warn(fmt.Sprintf("cannot index [%v]: %v", note.ID))
+					trace.Warn(fmt.Sprintf("cannot index [%v]: %v", note.ID, err))
 				}
 			}
 		}
