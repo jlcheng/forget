@@ -60,5 +60,4 @@ func TestRpcSearch(t *testing.T) {
 		t.Error("expected one result")
 	}
 
-
 }

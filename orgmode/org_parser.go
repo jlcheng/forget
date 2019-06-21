@@ -4,21 +4,22 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jlcheng/forget/trace"
+	"github.com/pkg/errors"
 	"regexp"
 	"strings"
 )
 
 type Node struct {
-	Type string
+	Type    string
 	Heading string
-	Value interface{}
+	Value   interface{}
 }
 
 type OrgParser struct {
 	heading string
-	text string
-	index int
-	nodes []*Node
+	text    string
+	index   int
+	nodes   []*Node
 }
 
 type OrgDoc struct {
@@ -36,21 +37,20 @@ var NodeTypeText string = "TEXT"
 var NodeTypeHeading string = "HEADING"
 var NodeTypeDescItem string = "DESC_ITEM"
 
-
 func NewNode(nodeType string, heading string, value interface{}) *Node {
 	return &Node{
-		Type: nodeType,
+		Type:    nodeType,
 		Heading: heading,
-		Value: value,
+		Value:   value,
 	}
 }
 
 func NewParser(text string) OrgParser {
 	return OrgParser{
-		heading: "",
-		text: text,
-		index: 0,
-		nodes: make([]*Node, 0),
+		heading: "_",
+		text:    text,
+		index:   0,
+		nodes:   make([]*Node, 0),
 	}
 }
 
@@ -78,15 +78,15 @@ func textParser(text string) (*Node, int) {
 			// Read in the line, including the newline
 			ni += 1
 		}
-		contents += text[idx:idx+ni]
+		contents += text[idx : idx+ni]
 		idx += ni // Move the start of the next substring forward
 	}
 
 	// Return a text node if we found contents, otherwise, return nil
 	if contents != "" {
-		return NewNode(NodeTypeText, "", contents), idx	
+		return NewNode(NodeTypeText, "", contents), idx
 	}
-	return  nil, 0
+	return nil, 0
 }
 
 func headingParser(text string) (*Node, int) {
@@ -141,7 +141,7 @@ func ParseOrgDoc(text string) (*OrgDoc, error) {
 		doc.Nodes = append(doc.Nodes, node)
 
 		if node.Type == NodeTypeHeading {
-			// Store the last heading			
+			// Store the last heading
 			orgParser.heading = node.Heading
 		} else {
 			// Non-heading nodes should be tagged with the last seen heading
@@ -151,6 +151,7 @@ func ParseOrgDoc(text string) (*OrgDoc, error) {
 	if !orgParser.finished() {
 		trace.Warn("unparsable org-mode file")
 		trace.Warn(text)
+		return nil, errors.New("unparsable org-mode file")
 	}
 	return doc, nil
 }
@@ -171,6 +172,22 @@ func (node Node) String() string {
 		return fmt.Sprintf("{Type: %v, Heading: \"%v\", value: \"%v\"}", node.Type, node.Heading, node.Value)
 	}
 	return fmt.Sprintf("{Type: %v, Heading: \"%v\", value: %v}", node.Type, node.Heading, node.Value)
+}
+
+func (node Node) TextValue() string {
+	textContent, ok := node.Value.(string)
+	if !ok {
+		return ""
+	}
+	return textContent
+}
+
+func (node Node) DescItemValue() DescItem {
+	descItem, ok := node.Value.(DescItem)
+	if !ok {
+		return DescItem{}
+	}
+	return descItem
 }
 
 func (descItem DescItem) String() string {

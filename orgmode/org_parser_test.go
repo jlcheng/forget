@@ -1,9 +1,9 @@
 package orgmode
 
 import (
-	"testing"
 	"reflect"
 	"strings"
+	"testing"
 )
 
 func TestHeadingParser(t *testing.T) {
@@ -26,13 +26,13 @@ func TestDescItemParser(t *testing.T) {
 Line 2
 `
 	n, c := descriptionItemParser(text)
-	expected := NewNode(NodeTypeDescItem, "", DescItem{Term:"search engine", Desc:"a fast document finder"})
+	expected := NewNode(NodeTypeDescItem, "", DescItem{Term: "search engine", Desc: "a fast document finder"})
 	if !reflect.DeepEqual(expected, n) {
 		t.Fatal("unexpected node:", n, expected)
 	}
 	if c != strings.Index(text, "Line 2") {
 		t.Fatal("unexpected consumed:", c)
-	}	
+	}
 }
 
 func TestTextParser(t *testing.T) {
@@ -57,20 +57,19 @@ Line 4
 	}
 }
 
-
 func TestOrgDocParser(t *testing.T) {
 	testData := []struct {
-		text string
+		text     string
 		expected *OrgDoc
-	} {
+	}{
 		{
 			`before
 * heading 1
 `,
 			&OrgDoc{
 				[]*Node{
-					&Node{NodeTypeText, "", "before\n"},
-					&Node{NodeTypeHeading, "heading 1", ""},
+					{NodeTypeText, "_", "before\n"},
+					{NodeTypeHeading, "heading 1", ""},
 				},
 			},
 		},
@@ -80,8 +79,8 @@ func TestOrgDocParser(t *testing.T) {
 `,
 			&OrgDoc{
 				[]*Node{
-					&Node{NodeTypeHeading, "heading 1", ""},
-					&Node{NodeTypeHeading, "heading 2", ""},
+					{NodeTypeHeading, "heading 1", ""},
+					{NodeTypeHeading, "heading 2", ""},
 				},
 			},
 		},
@@ -93,10 +92,10 @@ text
 `,
 			&OrgDoc{
 				[]*Node{
-					&Node{NodeTypeHeading, "heading 1", ""},
-					&Node{NodeTypeText, "heading 1", "text\n"},
-					&Node{NodeTypeDescItem, "heading 1", DescItem{"term","desc"}},
-					&Node{NodeTypeDescItem, "heading 1", DescItem{"home","where the heart is"}},
+					{NodeTypeHeading, "heading 1", ""},
+					{NodeTypeText, "heading 1", "text\n"},
+					{NodeTypeDescItem, "heading 1", DescItem{"term", "desc"}},
+					{NodeTypeDescItem, "heading 1", DescItem{"home", "where the heart is"}},
 				},
 			},
 		},

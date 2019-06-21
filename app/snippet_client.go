@@ -1,10 +1,10 @@
 package app
 
 import (
-	"fmt"
-	"github.com/jlcheng/forget/cli"
-	"github.com/jlcheng/forget/atlasrpc"
 	"encoding/json"
+	"fmt"
+	"github.com/jlcheng/forget/atlasrpc"
+	"github.com/jlcheng/forget/cli"
 	"strings"
 )
 
@@ -25,7 +25,6 @@ func SnippetClient(args []string) error {
 	}
 
 	fmt.Println(string(bytearr))
-	
+
 	return nil
 }
-

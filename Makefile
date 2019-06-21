@@ -29,6 +29,8 @@ test: $(GENERATED)
 .PHONY: fmt
 fmt:
 	gofmt -s -w ./
+	golangci-lint run
 
 install: test build
 	mv out/4gt $(HOME)/bin
+

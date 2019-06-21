@@ -7,9 +7,6 @@ import (
 	"testing"
 )
 
-const TEST_NOTE_1 = "the brown dog jumped over the red fox\na brown bird flew over the red fox\nthe brown chicken played\nwith the red hen\n...\nthe end"
-const TEST_NOTE_2 = "the brown dog jumped over the red fox\na brown bird flew over brown-red fox\nthe brown chicken played\nwith the red hen\n...\nthe end"
-
 func TestPrintDocumentMatch(t *testing.T) {
 	testkit.DeleteTempIndexDir(t)
 	tmpDir := testkit.GetTempIndexDir()
@@ -17,9 +14,10 @@ func TestPrintDocumentMatch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	body := "the brown dog jumped over the red fox\na brown bird flew over the red fox\nthe brown chicken played\nwith the red hen\n...\nthe end"	
 	note := Note{
 		ID:         "test_note_1",
-		Body:       TEST_NOTE_1,
+		Body:       body,
 		Title:      "",
 		AccessTime: 0,
 	}
@@ -46,5 +44,3 @@ func TestPrintDocumentMatch(t *testing.T) {
 		t.Fatal("unexpected formatting:", got)
 	}
 }
-
-

@@ -9,7 +9,7 @@ import (
 
 var exqCmd = &cobra.Command{
 	Use:   "exq",
-	Short:  "Experimental query client",
+	Short: "Experimental query client",
 	Long:  "Experimental query client",
 	Run: func(_ *cobra.Command, args []string) {
 		if err := app.SnippetClient(args); err != nil {

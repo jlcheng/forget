@@ -1,6 +1,7 @@
 package subcmd
 
 import (
+	"fmt"
 	"github.com/jlcheng/forget/cli"
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/db/files"
@@ -19,6 +20,12 @@ var svrCmd = &cobra.Command{
 		runexsvr := watcher.NewWatcherFacade()
 		defer runexsvr.Close()
 		if rebuild {
+			err := os.RemoveAll(cli.IndexDir())
+			if err != nil {
+				trace.Warn(fmt.Sprintf("cannot recursively delete %v", cli.IndexDir()))
+				return
+			}
+
 			atlas, err := db.Open(cli.IndexDir(), 100)
 			if err != nil {
 				trace.Warn(err)
@@ -31,14 +38,13 @@ var svrCmd = &cobra.Command{
 			err = atlas.Flush()
 			if err != nil {
 				trace.Warn(err)
-			}			
+			}
 			err = atlas.Close()
 			if err != nil {
 				trace.Warn(err)
 			}
 		}
 
-		
 		err := runexsvr.Listen(cli.Port(), cli.IndexDir(), cli.DataDirs(), time.Second*time.Duration(svrDuration))
 		if err != nil {
 			trace.PrintStackTrace(err)

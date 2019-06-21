@@ -2,14 +2,12 @@ package watcher
 
 import (
 	"fmt"
+	"github.com/jlcheng/forget/atlasrpc"
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/db/files"
-	"github.com/jlcheng/forget/atlasrpc"
 	"github.com/jlcheng/forget/trace"
 	rwatch "github.com/radovskyb/watcher"
-	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"time"
 )
@@ -91,7 +89,7 @@ func onEvent(atlas *db.Atlas, event rwatch.Event) {
 		if !db.FilterFile(path, event.FileInfo) {
 			trace.Debug(fmt.Sprintf("no-index: [%v] %v", path, event.Op))
 		} else {
-			notes, err := files.ParseNotes(path)
+			notes, err := files.ParseFile(path)
 			if err != nil {
 				trace.Warn(fmt.Sprintf("cannot index [%v]: %v", path, err))
 			}
@@ -108,17 +106,4 @@ func onEvent(atlas *db.Atlas, event rwatch.Event) {
 	default:
 		trace.Warn(fmt.Sprintf("not-implemented: %v", event))
 	}
-}
-
-func slurpFile(fileName string) string {
-	f, err := os.Open(fileName)
-	if err != nil {
-		return fmt.Sprintf("%v", err)
-	}
-	defer trace.TryClose(f)
-	s, err := ioutil.ReadAll(f)
-	if err != nil {
-		return fmt.Sprintf("%v", err)
-	}
-	return string(s)
 }

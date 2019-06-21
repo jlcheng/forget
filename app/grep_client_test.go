@@ -1,15 +1,12 @@
 package app
 
 import (
+	"fmt"
 	"github.com/jlcheng/forget/db"
 	"github.com/jlcheng/forget/testkit"
-	"testing"
 	"reflect"
-	"fmt"
+	"testing"
 )
-
-const TEST_NOTE_1 = "the brown dog jumped over the red fox\na brown bird flew over the red fox\nthe brown chicken played\nwith the red hen\n...\nthe end"
-const TEST_NOTE_2 = "the brown dog jumped over the red fox\na brown bird flew over brown-red fox\nthe brown chicken played\nwith the red hen\n...\nthe end"
 
 func TestMapDocumentMatchToResultEntrySlice(t *testing.T) {
 	testkit.DeleteTempIndexDir(t)
@@ -19,9 +16,10 @@ func TestMapDocumentMatchToResultEntrySlice(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	body := "the brown dog jumped over the red fox\na brown bird flew over brown-red fox\nthe brown chicken played\nwith the red hen\n...\nthe end"
 	note := db.Note{
-		ID:         "test_note_1",
-		Body:       TEST_NOTE_2,
+		ID:         "test_note_2",
+		Body:       body,
 		Title:      "",
 		AccessTime: 0,
 	}
@@ -46,9 +44,9 @@ func TestMapDocumentMatchToResultEntrySlice(t *testing.T) {
 	dm := results.Hits[0]
 
 	expected := []db.ResultEntry{
-		{NoteID: "test_note_1", Line: "the brown dog jumped over the red fox", Addr: 0, Spans: []db.Span{{4, 9}}},
-		{NoteID: "test_note_1", Line: "a brown bird flew over brown-red fox", Addr: 38, Spans: []db.Span{{2, 7}, {23, 28}}},
-		{NoteID: "test_note_1", Line: "the brown chicken played", Addr: 75, Spans: []db.Span{{4, 9}}},
+		{NoteID: "test_note_1", Line: "the brown dog jumped over the red fox", Addr: 0, Spans: []db.Span{{Start: 4, End: 9}}},
+		{NoteID: "test_note_1", Line: "a brown bird flew over brown-red fox", Addr: 38, Spans: []db.Span{{Start: 2, End: 7}, {Start: 23, End: 28}}},
+		{NoteID: "test_note_1", Line: "the brown chicken played", Addr: 75, Spans: []db.Span{{Start: 4, End: 9}}},
 	}
 	got, err := mapDocumentMatchToResultEntrySlice("Body", dm)
 	if err != nil {

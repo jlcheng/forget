@@ -20,7 +20,7 @@ func Execute() {
 }
 
 func InitRoot() {
-	cobra.OnInitialize(func(){
+	cobra.OnInitialize(func() {
 		if err := cli.ProcessParsedFlagSet(rootCmd.PersistentFlags()); err != nil {
 			log.Fatal(err)
 		}
