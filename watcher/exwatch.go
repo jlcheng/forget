@@ -29,6 +29,7 @@ func (wfacade *WatcherFacade) Listen(port int, indexDir string, dataDirs []strin
 	if err != nil {
 		return err
 	}
+	defer atlas.CloseQuietly()
 	docCount, err := atlas.GetDocCount()
 	if err != nil {
 		return err

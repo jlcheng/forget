@@ -99,6 +99,13 @@ func (s *Atlas) Close() error {
 	return nil
 }
 
+func (s *Atlas) CloseQuietly() {
+	err := s.Close()
+	if err != nil {
+		trace.Warn(err)
+	}
+}
+
 func (s *Atlas) Enqueue(note Note) error {
 	trace.Debug(fmt.Sprintf("Enqueue called for %v", note.Title))
 	err := s.batch.Index(note.ID, note)
