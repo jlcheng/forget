@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jlcheng/forget/atlasrpc"
 	"github.com/jlcheng/forget/cli"
+	"github.com/pkg/errors"
 	"strings"
 )
 
@@ -21,7 +22,7 @@ func SnippetClient(args []string) error {
 
 	bytearr, err := json.Marshal(sr)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	fmt.Println(string(bytearr))
