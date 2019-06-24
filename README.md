@@ -4,9 +4,9 @@
 search engine that is fast and ranks results based on
 recency.
 
-4gt is backed by the Bleve Search Engine. At this time, Bleve is the
+4gt is backed by the [Bleve Search Engine](https://github.com/blevesearch/bleve). At this time, Bleve is the
 most mature search library for Go. For personal use, Bleve can
-find and rank documents within milliseconds.
+find and rank documents under one millisecond.
 
 I use 4gt as a personal note keeper, as a replacement for
 Evernote. Most of my documents are simple text files - a combination
