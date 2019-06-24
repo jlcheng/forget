@@ -56,6 +56,7 @@ dataDirs = [
   "/home/jcheng/project_x",
 ]
 ENDL
+```
 
 Run the 4gt server, rebuilding the index from scratch
 ```
