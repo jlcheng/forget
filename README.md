@@ -10,12 +10,12 @@ find and rank documents within milliseconds.
 
 I use 4gt as a personal note keeper, as a replacement for
 Evernote. Most of my documents are simple text files - a combination
-of Git and Bleve allows me to own my own data.
+of Git and Bleve gives me full ownership of my data.
 
-4gt has custom parsing for org-mode files, as that's the primary way I
-keep notes. It runs in the CLI, similar to grep. Future iterations
-will use a curses-like console to allow for search-while-you-type
-results.
+4gt has custom parsing for org-mode files - Each heading in a document
+is scored separately and only relevant headings are returned. It runs
+in the CLI, similar to grep. Future iterations will use a curses-like
+console to allow for search-while-you-type UI.
 
 Architecturally, 4gt is separated into server and client components,
 communicating over Go RPC. This allows flexibility in developing new
@@ -46,10 +46,13 @@ $ make all     # Runs tests and creates out/grs
 $ make install # Installs grs in $HOME/bin
 ```
 
-Create a configuration file in ~/.forget.toml
+Create a configuration file in `~/.forget.toml`
 ```
 test -f ~/.forget.toml || cat > ~/.forget.toml <<ENDL
+# where to place the search engine index
 indexDir = "/tmp/forget-index"
+
+# the directories on your machine that you wish to index
 dataDirs = [
   "/home/jcheng/org",
   "/home/jcheng/something",
