@@ -6,6 +6,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzer/custom"
 	"github.com/blevesearch/bleve/analysis/lang/en"
+	"github.com/blevesearch/bleve/analysis/token/edgengram"
 	"github.com/blevesearch/bleve/analysis/token/length"
 	"github.com/blevesearch/bleve/analysis/token/lowercase"
 	"github.com/blevesearch/bleve/analysis/tokenizer/unicode"
@@ -208,6 +209,16 @@ func NewIndexMapping() (mapping.IndexMapping, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot add custom token filter")
 	}
+	const edge_ngram_filter = "edge_ngram_filter"
+	err = indexMapping.AddCustomTokenFilter(edge_ngram_filter,
+		map[string]interface{}{
+			"type": edgengram.Name,
+			"min": 3.0,
+			"max": 25.0,
+		})
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot add edgeNgram token filter")
+	}
 
 	err = indexMapping.AddCustomAnalyzer(body_analyzer, map[string]interface{}{
 		"type":      custom.Name,
@@ -216,6 +227,7 @@ func NewIndexMapping() (mapping.IndexMapping, error) {
 			lowercase.Name,
 			en.StopName,
 			token_length_filter,
+			edgen_gram_filter,
 		},
 	})
 	if err != nil {
