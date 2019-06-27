@@ -227,7 +227,7 @@ func NewIndexMapping() (mapping.IndexMapping, error) {
 			lowercase.Name,
 			en.StopName,
 			token_length_filter,
-			edgen_gram_filter,
+			edge_ngram_filter,
 		},
 	})
 	if err != nil {
