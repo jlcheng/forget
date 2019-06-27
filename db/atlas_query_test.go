@@ -14,7 +14,7 @@ func TestPrintDocumentMatch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := "the brown dog jumped over the red fox\na brown bird flew over the red fox\nthe brown chicken played\nwith the red hen\n...\nthe end"	
+	body := "the brown dog jumped over the red fox\na brown bird flew over the red fox\nthe brown chicken played\nwith the red hen\n...\nthe end"
 	note := Note{
 		ID:         "test_note_1",
 		Body:       body,

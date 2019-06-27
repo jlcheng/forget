@@ -45,6 +45,8 @@ func setTraceLevel() {
 	switch strings.ToUpper(viper.GetString(LogLevelParam)) {
 	case "DEBUG":
 		trace.Level = trace.LOG_DEBUG
+	case "INFO":
+		trace.Level = trace.LOG_INFO
 	case "WARN":
 		trace.Level = trace.LOG_WARN
 	default:
@@ -58,7 +60,7 @@ func ConfigureFlagSet(flags *pflag.FlagSet) {
 	flags.StringSlice(DataDirsParam, make([]string, 0), "data directories")
 	flags.String(HostParam, "localhost", "hostname of the 4gtsvr")
 	flags.StringP(IndexDirParam, "i", "", "path to the index directory")
-	flags.StringP(LogLevelParam, "L", "None", "log level: NONE, DEBUG, or WARN")
+	flags.StringP(LogLevelParam, "L", "INFO", "log level: NONE, INFO, DEBUG, or WARN")
 	flags.IntP(PortParam, "p", 8181, "rpc port")
 }
 

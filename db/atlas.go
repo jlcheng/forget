@@ -65,8 +65,10 @@ func Open(path string, size int) (*Atlas, error) {
 	switch err {
 	case bleve.ErrorIndexMetaCorrupt, bleve.ErrorUnknownIndexType, bleve.ErrorUnknownStorageType:
 		return nil, errors.Wrap(err, "cannot open existing index")
+	case bleve.ErrorIndexPathDoesNotExist:
+		// happy path
 	default:
-		fmt.Println(err)
+		return nil, errors.Wrap(err, "unexpected bleve error")
 	}
 
 	indexMapping, err := NewIndexMapping()

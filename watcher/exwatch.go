@@ -16,6 +16,9 @@ type WatcherFacade struct {
 	watcher *rwatch.Watcher
 }
 
+// NewWatcherFacade creates a NewWatcherFacade instance
+//
+// The WatcherFacade object must be explicitly started with Listen()
 func NewWatcherFacade() WatcherFacade {
 	return WatcherFacade{
 		watcher: rwatch.New(),

@@ -18,8 +18,9 @@ type stackTracer interface {
 }
 
 func PrintStackTrace(err error) {
-	Warn(err)
 	if _, ok := err.(stackTracer); ok {
 		fmt.Printf("%+v\n", err)
+	} else {
+		fmt.Println(err)
 	}
 }

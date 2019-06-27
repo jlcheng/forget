@@ -15,21 +15,22 @@ import (
 func TestRpcSearch(t *testing.T) {
 	const RPC_PORT = 63999
 	var err error
-	indexDir, err := ioutil.TempDir("", "4gt-index_")
+	baseTmpDir, err := ioutil.TempDir("", "4gt-index_")
 	if err != nil {
 		t.Error(err)
 	}
-	defer testkit.TempDirRemoveAll(indexDir)
-	dataDir1, err := ioutil.TempDir("", "4gt-data1_")
+	defer testkit.TempDirRemoveAll(baseTmpDir)
+	indexDir := path.Join(baseTmpDir, "index")
+	dataDir1 := path.Join(baseTmpDir, "data1")
+	err = os.Mkdir(dataDir1, 0775)
 	if err != nil {
 		t.Error(err)
 	}
-	defer testkit.TempDirRemoveAll(dataDir1)
-	dataDir2, err := ioutil.TempDir("", "4gt-data2_")
+	dataDir2 := path.Join(baseTmpDir, "data2")
+	err = os.Mkdir(dataDir2, 0775)
 	if err != nil {
 		t.Error(err)
 	}
-	defer testkit.TempDirRemoveAll(dataDir2)
 
 	runexsvr := NewWatcherFacade()
 	defer runexsvr.Close()

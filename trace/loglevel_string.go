@@ -4,9 +4,9 @@ package trace
 
 import "strconv"
 
-const _LogLevel_name = "LOG_NONELOG_WARNLOG_DEBUG"
+const _LogLevel_name = "LOG_NONELOG_WARNLOG_INFOLOG_DEBUG"
 
-var _LogLevel_index = [...]uint8{0, 8, 16, 25}
+var _LogLevel_index = [...]uint8{0, 8, 16, 24, 33}
 
 func (i LogLevel) String() string {
 	if i < 0 || i >= LogLevel(len(_LogLevel_index)-1) {
