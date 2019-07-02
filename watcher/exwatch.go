@@ -25,6 +25,10 @@ func NewWatcherFacade() WatcherFacade {
 	}
 }
 
+// Listen starts a search server at the specified port.
+//
+// The search server accepts connections using Go RPC. It polls the dataDirs directories for changes based
+// on the duration parameter. Changes and new files will be added to the index at indexDir.
 func (wfacade *WatcherFacade) Listen(port int, indexDir string, dataDirs []string, duration time.Duration) error {
 	trace.Debug(fmt.Sprintf("indexDir: %s", indexDir))
 	trace.Debug(fmt.Sprintf("dataDirs: %s", strings.Join(dataDirs, ", ")))

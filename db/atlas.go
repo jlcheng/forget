@@ -90,6 +90,7 @@ func NewAtlas(index bleve.Index, size int) *Atlas {
 	}
 }
 
+// Closes the Atlas instance and the underlying bleve index
 func (s *Atlas) Close() error {
 	err := s.Flush() // TODO: JCHENG handle returned error
 	if err != nil {
